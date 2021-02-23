@@ -1,35 +1,39 @@
-import * as path from 'path'
+import * as path from 'path';
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm'
-import { ConfigModule, ConfigService } from 'nestjs-config'
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from 'nestjs-config';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { RedisUtilsModule } from './modules/redis-utils/redis-utils/redis-utils.module';
+import { RedisUtilsModule } from './modules/redis-utils/redis-utils.module';
+import { UserModule } from './modules/user/user.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
     // 配置加载配置文件
     ConfigModule.load(path.resolve(__dirname, 'config', '**/!(*.d).{ts,js}'), {
-      modifyConfigName: name => name.replace('.config', ''),
+      modifyConfigName: (name) => name.replace('.config', ''),
     }),
     // mysql的连接
-    TypeOrmModule.forRootAsync({
-      useFactory: async (config: ConfigService) => ({
-        type: config.get('database.type'),
-        host: config.get('database.host'),
-        port: config.get('database.port'),
-        username: config.get('database.username'),
-        password: config.get('database.password'),
-        database: config.get('database.database'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        subscribers: [__dirname + './../subscribers/*.subscriber{.ts,.js}'],
-        logging: config.get('database.logging'),
-        timezone: '+08:00', // 东八区
-      }),
-      inject: [ConfigService],
-    }),
+    // TypeOrmModule.forRootAsync({
+    //   useFactory: async (config: ConfigService) => ({
+    //     type: config.get('database.type'),
+    //     host: config.get('database.host'),
+    //     port: config.get('database.port'),
+    //     username: config.get('database.username'),
+    //     password: config.get('database.password'),
+    //     database: config.get('database.database'),
+    //     entities: [__dirname + '/**/*.entity{.ts,.js}'],
+    //     subscribers: [__dirname + './../subscribers/*.subscriber{.ts,.js}'],
+    //     logging: config.get('database.logging'),
+    //     timezone: '+08:00', // 东八区
+    //   }),
+    //   inject: [ConfigService],
+    // }),
     RedisUtilsModule,
+    UserModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

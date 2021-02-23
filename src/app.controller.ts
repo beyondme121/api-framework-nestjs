@@ -1,6 +1,6 @@
 import { Controller, Get, HttpException, HttpStatus } from '@nestjs/common';
 import { AppService } from './app.service';
-import { RedisUtilsService } from './modules/redis-utils/redis-utils/redis-utils.service'
+import { RedisUtilsService } from './modules/redis-utils/redis-utils.service'
 @Controller()
 export class AppController {
   constructor(

@@ -9,7 +9,7 @@ import * as rateLimit from 'express-rate-limit';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
-import { ValidationPipe } from './pipes/validation/validation.pipe';
+import { ValidationPipe } from './pipes/validation.pipe';
 
 const HOST = process.env.HOST || 'locahost';
 const PORT = process.env.PORT || 8080;
@@ -24,19 +24,19 @@ async function bootstrap() {
   // 3. 访问限制
   app.use(
     rateLimit({
-      windowMS: 5 * 60 * 1000,  // 5 min
+      windowMS: 5 * 60 * 1000, // 5 min
       max: 300, // limit each IP to 300 requests per windowMs
     }),
   );
   // 配置请求api前缀
   app.setGlobalPrefix(PREFIX);
   // 全局注册拦截器 日志/响应数据格式化
-  app.useGlobalInterceptors(new LoggingInterceptor())
-  app.useGlobalInterceptors(new TransformInterceptor())
+  app.useGlobalInterceptors(new LoggingInterceptor());
+  app.useGlobalInterceptors(new TransformInterceptor());
   // 全局注册HTTP异常过滤器
-  app.useGlobalFilters(new HttpExceptionFilter())
+  app.useGlobalFilters(new HttpExceptionFilter());
   // 全局注册管道 参数校验
-  app.useGlobalPipes(new ValidationPipe())
+  app.useGlobalPipes(new ValidationPipe());
 
   await app.listen(PORT, HOST, () => {});
   Logger.log(`server start at ${HOST}:${PORT}/${PREFIX}`);

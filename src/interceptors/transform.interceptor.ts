@@ -12,8 +12,8 @@ export class TransformInterceptor implements NestInterceptor {
       map((data: any) => {
         return {
           result: classToPlain(data),
-          code: 0,
-          message: '请求成功',
+          // code: 0,
+          // message: '请求成功',
           status: res.statusCode
         }
       })

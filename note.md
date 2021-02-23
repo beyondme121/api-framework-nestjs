@@ -35,5 +35,27 @@ nest g s modules/redis-utils/redis-utils --no-spec
 `npm i ioredis`
 
 
+### 支持sequelize的原生sql操作
 
 
+### 功能
+- 注册
+- 登录 jwt
+
+
+### 管道
+- 全局的验证管道 main.ts中使用 app.use(new ValidationPipe())
+  - 在controller中的参数只要设置了参数的Dto,就会自动转换dto这个类,使用class-validator这个包进行校验对象的属性
+
+- 全局的另外一种方式是依赖注入的方式, 去掉main.ts中use方法,在app.module.ts中使用
+  ```ts
+  {
+    provide: APP_PIPE,
+    useClass: ValidationPipe
+  }
+  ```
+
+### 执行顺序
+中间件 -> 守卫 -> (拦截器or管道)
+守卫在每个中间件之后执行，但在任何拦截器或管道之前执行。
+比如: 日志中间件肯定会先执行, 进行日志记录, 以权限守卫为例, 用户请求了一个未授权的路由, 就不会进行执行拦截器(比如异常拦截器) 也不会进入路由的处理函数调用管道去(验证或转换参数)

@@ -22,13 +22,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const message = exception.message
     Logger.log(exception, '错误提示')
     const errorResponse = {
+      code: -100,
       status,
-      message,
-      code: 1,
-      path: req.url,
-      method: req.method,
-      // timestamp: new Date().toISOString()
-      timestamp: formatDate(Date.now())
+      result: {
+        message,
+        path: req.url,
+        method: req.method,
+        timestamp: formatDate(Date.now())
+      }
     }
      // 打印日志
      Logger.error(

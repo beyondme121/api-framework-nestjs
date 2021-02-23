@@ -25,7 +25,7 @@ export class ValidationPipe implements PipeTransform {
       //获取第一个错误并且直接返回
       const msg = Object.values(errors[0].constraints)[0];
       // 统一抛出异常
-      throw new HttpException({ message: msg }, HttpStatus.OK);
+      throw new HttpException({ message: msg }, HttpStatus.INTERNAL_SERVER_ERROR);
     }
     return value;
   }
