@@ -35,6 +35,7 @@
     "express-rate-limit": "^5.2.6",
     "helmet": "^4.4.1",
     "ioredis": "^4.22.0",
+    "log4js": "^6.3.0",
     "moment": "^2.29.1",
     "mysql": "^2.18.1",
     "mysql2": "^2.2.5",
@@ -48,6 +49,7 @@
     "rxjs": "^6.6.3",
     "sequelize": "^6.5.0",
     "sequelize-typescript": "^2.1.0",
+    "stacktrace-js": "^2.0.2",
     "typeorm": "^0.2.31"
   },
   "devDependencies": {

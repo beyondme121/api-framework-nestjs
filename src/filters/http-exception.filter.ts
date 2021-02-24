@@ -1,45 +1,37 @@
 import {
-  ArgumentsHost,
-  Catch,
   ExceptionFilter,
+  Catch,
+  ArgumentsHost,
   HttpException,
-  HttpStatus,
-  Logger,
 } from '@nestjs/common';
-import { formatDate } from 'src/utils'
+import { Request, Response } from 'express';
+import { Logger } from '../utils/log4js';
 
+/**
+ * 1. 异常日志记录
+ * 2. 错误信息返回给客户端(规划细节)
+ */
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
-    const res = ctx.getResponse();
-    const req = ctx.getRequest();
-    const status =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
-    
-    const message = exception.message
-    Logger.log(exception, '错误提示')
-    const errorResponse = {
-      code: -100,
-      status,
-      result: {
-        message,
-        path: req.url,
-        method: req.method,
-        timestamp: formatDate(Date.now())
-      }
-    }
-     // 打印日志
-     Logger.error(
-      `【${formatDate(Date.now())}】${req.method} ${req.url}`,
-      JSON.stringify(errorResponse),
-      'HttpExceptionFilter',
-    );
-    // 设置返回的状态码、请求头、发送错误信息给前端
-    res.status(status);
-    res.header('Content-Type', 'application/json; charset=utf-8');
-    res.send(errorResponse);
+    const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
+    const status = exception.getStatus();
+    const logFormat = `<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    Request original url: ${request.originalUrl}
+    Method: ${request.method}
+    IP: ${request.ip}
+    Status code: ${status}
+    Filter: HttpExceptionFilter
+    Response: ${exception.toString()}
+    <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    `;
+    Logger.error(logFormat);
+    response.status(status).json({
+      statusCode: status,
+      error: exception.message,
+      msg: `${status >= 500 ? 'Service Error' : 'Client Error'}`,
+    });
   }
 }

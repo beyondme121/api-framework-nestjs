@@ -65,6 +65,31 @@ export class UserService {
       WHERE username = '${username}'
     `;
     try {
+      // const user = (
+      //   await sequelize.query(sql, {
+      //     type: Sequelize.QueryTypes.SELECT,
+      //     raw: true,
+      //     // logging: console.log,
+      //   })
+      // )[0];
+      const user = await sequelize.query(sql, {
+        type: Sequelize.QueryTypes.SELECT, // 只返回结果对象, 不返回元数据对象, mysql中两者一样, 所以会输出相同的记录
+      });
+      return user;
+    } catch (error) {
+      return {
+        code: 503,
+        msg: `服务器溜号了, ${error}`,
+      };
+    }
+  }
+
+  async findOneUserById(id) {
+    let sql = `
+      SELECT username, email
+      from user where id = '${id}'
+    `;
+    try {
       const user = (
         await sequelize.query(sql, {
           type: Sequelize.QueryTypes.SELECT,
@@ -72,12 +97,12 @@ export class UserService {
           logging: true,
         })
       )[0];
-      console.log('user: ', user);
+      console.log('user.service -> findOneUserById ', user);
       return user;
-    } catch (error) {
+    } catch (err) {
       return {
         code: 503,
-        msg: `服务器溜号了, ${error}`,
+        msg: `服务器溜号了, ${err}`,
       };
     }
   }

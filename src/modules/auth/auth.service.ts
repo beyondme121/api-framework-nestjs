@@ -44,6 +44,7 @@ export class AuthService {
     const payload = {
       userid: user.id,
       username: user.username,
+      // email: user.email,
     };
     console.log('JWT token 生成');
     try {

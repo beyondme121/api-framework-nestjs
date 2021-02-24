@@ -1,4 +1,5 @@
 // 用于对用户信息的获取
+// 支持参数 获取一个用户的某个属性, 也支持获取所有属性对象
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
 export const User = createParamDecorator(
@@ -9,3 +10,10 @@ export const User = createParamDecorator(
     return data ? user?.[data] : user;
   },
 );
+
+// 调用方法
+/**
+ * async findOne(@User('firstname') firstname: string) {
+ *   // ...
+ * }
+ */
