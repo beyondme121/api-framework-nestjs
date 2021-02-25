@@ -27,4 +27,9 @@ export class RoleService {
   async delete(id: number): Promise<DeleteResult> {
     return await this.roleRepository.delete(id);
   }
+
+  // 查
+  async findAll(): Promise<Role[]> {
+    return await this.roleRepository.find();
+  }
 }

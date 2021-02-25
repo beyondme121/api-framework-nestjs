@@ -136,3 +136,16 @@ async login(@Request() req): Promise<any> {
   return this.authService.certificate(req.user.data);
 }
 ```
+
+
+#### 全局守卫 认证
+```ts
+// 任意的模块中添加
+providers: [
+  {
+    provide: APP_GUARD,
+    useClass: JwtAuthGuard,
+  },
+],
+```
+
