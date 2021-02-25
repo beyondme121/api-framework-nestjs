@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { plainToClass } from 'class-transformer';
+import { Logger } from '../utils/log4js';
 
 @Injectable()
 export class ValidationPipe implements PipeTransform<any> {
@@ -16,9 +17,9 @@ export class ValidationPipe implements PipeTransform<any> {
     const object = plainToClass(metatype, value);
     const errors = await validate(object);
     if (errors.length > 0) {
-      // TODO 错误日志 持久化
       const msg = Object.values(errors[0].constraints)[0];
-      throw new BadRequestException(msg);
+      Logger.error(`Validation failed: ${msg}`);
+      throw new BadRequestException(`Validation failed: ${msg}`);
     }
     return value;
   }

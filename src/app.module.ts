@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { RedisUtilsModule } from './modules/redis-utils/redis-utils.module';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { RoleModule } from './modules/role/role.module';
 
 @Module({
   imports: [
@@ -16,24 +17,27 @@ import { AuthModule } from './modules/auth/auth.module';
       modifyConfigName: (name) => name.replace('.config', ''),
     }),
     // mysql的连接
-    // TypeOrmModule.forRootAsync({
-    //   useFactory: async (config: ConfigService) => ({
-    //     type: config.get('database.type'),
-    //     host: config.get('database.host'),
-    //     port: config.get('database.port'),
-    //     username: config.get('database.username'),
-    //     password: config.get('database.password'),
-    //     database: config.get('database.database'),
-    //     entities: [__dirname + '/**/*.entity{.ts,.js}'],
-    //     subscribers: [__dirname + './../subscribers/*.subscriber{.ts,.js}'],
-    //     logging: config.get('database.logging'),
-    //     timezone: '+08:00', // 东八区
-    //   }),
-    //   inject: [ConfigService],
-    // }),
+    TypeOrmModule.forRootAsync({
+      useFactory: async (config: ConfigService) => ({
+        type: config.get('database.type'),
+        host: config.get('database.host'),
+        port: config.get('database.port'),
+        username: config.get('database.username'),
+        password: config.get('database.password'),
+        database: config.get('database.database'),
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        subscribers: [__dirname + './../subscribers/*.subscriber{.ts,.js}'],
+        logging: config.get('database.logging'),
+        timezone: '+08:00', // 东八区
+        autoLoadModels: true,
+      }),
+      inject: [ConfigService],
+    }),
+    // TypeOrmModule.forRoot(),
     RedisUtilsModule,
     UserModule,
     AuthModule,
+    RoleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,5 +1,7 @@
 import { Sequelize } from 'sequelize-typescript';
-import db from '../../config/db.config';
+import getConfig from '../config/db-sequelize.config';
+
+let db = getConfig(process.env.NODE_ENV);
 
 const sequelize = new Sequelize(
   db.mysql.database,

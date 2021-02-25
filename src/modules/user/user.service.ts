@@ -16,17 +16,17 @@ export class UserService {
       mobile,
       email,
     } = reqBody;
-    if (password !== repassword) {
+    if (password !== repassword || !password || !repassword) {
       return {
         code: -1,
-        msg: '两次输入的密码不一致',
+        msg: '两次输入的密码不一致或者未填写',
       };
     }
     const user = await this.findOneUser(username);
     if (user) {
       return {
         code: -2,
-        msg: '用户已经存在',
+        msg: '用户名已被注册',
       };
     }
     const salt = makeSalt();
@@ -39,7 +39,11 @@ export class UserService {
         ('${username}','${chinese_name}','${hashPwd}','${salt}','${email}','${mobile}', 1, '${createtime}')
     `;
     try {
-      await sequelize.query(sql, { logging: true });
+      // 返回结果是[id, 响应记录数]  => [11, 1]  => id=11, 新增1条记录
+      const result = await sequelize.query(sql, {
+        type: Sequelize.QueryTypes.INSERT,
+        raw: true,
+      });
       return {
         code: 0,
         msg: '添加用户成功',
@@ -65,16 +69,13 @@ export class UserService {
       WHERE username = '${username}'
     `;
     try {
-      // const user = (
-      //   await sequelize.query(sql, {
-      //     type: Sequelize.QueryTypes.SELECT,
-      //     raw: true,
-      //     // logging: console.log,
-      //   })
-      // )[0];
-      const user = await sequelize.query(sql, {
-        type: Sequelize.QueryTypes.SELECT, // 只返回结果对象, 不返回元数据对象, mysql中两者一样, 所以会输出相同的记录
-      });
+      const user = (
+        await sequelize.query(sql, {
+          type: Sequelize.QueryTypes.SELECT, // 只返回结果对象, 不返回元数据对象, mysql中两者一样, 所以会输出相同的记录
+          raw: true,
+          logging: console.log,
+        })
+      )[0];
       return user;
     } catch (error) {
       return {
@@ -105,5 +106,16 @@ export class UserService {
         msg: `服务器溜号了, ${err}`,
       };
     }
+  }
+
+  async findAll(): Promise<any | undefined> {
+    let sql = `
+      SELECT * FROM user
+    `;
+    try {
+      const users = (await sequelize.query(sql))[0];
+      console.log(users);
+      return users;
+    } catch (err) {}
   }
 }

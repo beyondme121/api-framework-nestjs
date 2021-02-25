@@ -1,5 +1,4 @@
 import { AuthService } from './../auth/auth.service';
-import { CreateUserDto } from './dto/create.user.dto';
 import { UserService } from './user.service';
 import {
   Body,
@@ -9,10 +8,17 @@ import {
   Post,
   Query,
   UseGuards,
+  UsePipes,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+// 管道
 import { UserByIdPipe } from 'src/pipes/user-by-id.pipe';
+import { ValidationPipe } from './../../pipes/validation.pipe';
+// dto
+import { CreateUserDto } from './dto/create.user.dto';
+import { LoginUserDto } from './dto/login.user.dto';
 
+@UsePipes(ValidationPipe) // 控制器级别
 @Controller('user')
 export class UserController {
   constructor(
@@ -21,14 +27,16 @@ export class UserController {
   ) {}
 
   // 用户注册
+  // @UsePipes(ValidationPipe)
   @Post('register')
   async register(@Body() body: CreateUserDto) {
     return await this.userService.create(body);
   }
 
   // 登录
+  // @UsePipes(ValidationPipe)
   @Post('login')
-  async login(@Body() loginParams: any): Promise<any> {
+  async login(@Body() loginParams: LoginUserDto): Promise<any> {
     console.log('JWT验证 - Step 1: 用户请求登录');
     const result = await this.authService.validateUser(
       loginParams.username,
@@ -62,10 +70,15 @@ export class UserController {
   // user: UserEntity
   @Get('getUserInfo')
   async getUserInfo(@Query('name', UserByIdPipe) user) {
-    console.log('getUserInfo: ', user);
     return {
       id: user.id,
       username: user.username,
     };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('all')
+  async findAll() {
+    return await this.userService.findAll();
   }
 }

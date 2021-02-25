@@ -8,7 +8,7 @@ import * as Util from 'util';
 import * as Moment from 'moment';
 import * as StackTrace from 'stacktrace-js';
 import Chalk from 'chalk';
-import config from '../../config/log4js';
+import config from '../config/log4js';
 
 export enum LoggerLevel {
   ALL = 'ALL',

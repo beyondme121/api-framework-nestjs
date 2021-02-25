@@ -6,7 +6,7 @@ export class UserByIdPipe implements PipeTransform {
   constructor(private readonly userService: UserService) {}
   async transform(value: string, metadata: ArgumentMetadata) {
     const result = await this.userService.findOneUser(value);
-    console.log('result: ', result);
+    console.log('UserByIdPipe result: ', result);
     return result;
   }
 }

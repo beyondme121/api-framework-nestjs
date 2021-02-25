@@ -71,3 +71,23 @@ nest g s modules/redis-utils/redis-utils --no-spec
 ### 使用拦截器记录出参, 用于记录bug的定位
 
 ### 异常处理
+
+
+### class-validator + pipe管道配合入参校验
+> https://github.com/typestack/class-validator
+
+
+### 拦截器实现RBAC0
+- 区别 RBAC1/2/3
+- 1. RBAC1: 子角色, 子角色继承父角色
+- 2. RBAC2: 基于 RBAC0 模型，增加了对角色的一些限制：角色互斥、基数约束、先决条件角色
+- 3. 称为统一模型，它包含了 RBAC 1 和 RBAC 2，利用传递性，也把 RBAC 0 包括在内，综合了 RBAC 0、RBAC 1 和 RBAC 2 的所有特点
+
+
+### 支持两种操作数据库的方式
+- sequelize: 编写原生sql -> 已经实现
+- TypeORM: 配置
+
+### 设置环境变量NODE_ENV
+npm i cross-env -D
+cross-env NODE_ENV=dev

@@ -8,20 +8,17 @@ module.exports = [
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
     logging: process.env.DB_LOGGING,
-    entities: [
-      'src/entity/**/*.entity.{ts,js}',
-      'src/modules/**/*.entity.{ts,js}'
-    ],
-    migrations: [
-      'src/migration/*.ts'
-    ],
-    subscribers: [
-      'src/subscribers/**/*.ts'
-    ],
+    entities: ['dist/**/*.entity{.ts,.js}'],
+    // 同步后端代码模型entity和数据库中的表的定义, 不删除数据
+    synchronize: true,
+    // 会删除表并重建
+    dropSchema: false,
+    migrations: ['src/migration/*.ts'],
+    subscribers: ['src/subscribers/**/*.ts'],
     cli: {
-      'entitiesDir': 'src/entity',
-      'migrationsDir': 'src/migration',
-      'subscribersDir': 'src/subscriber'
-    }
-  }
-]
+      entitiesDir: 'src/entity',
+      migrationsDir: 'src/migration',
+      subscribersDir: 'src/subscriber',
+    },
+  },
+];
