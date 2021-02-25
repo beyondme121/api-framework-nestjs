@@ -91,3 +91,48 @@ nest g s modules/redis-utils/redis-utils --no-spec
 ### 设置环境变量NODE_ENV
 npm i cross-env -D
 cross-env NODE_ENV=dev
+
+
+### 身份认证
+- passport-local: 一种通过使用用户名密码的身份验证机制
+- 必须安装的包: passport, @nestjs/passport
+- 根据不同的验证策略,安装不同的包. 比如passport-local和passport-jwt
+
+
+#### AuthService
+- 任务是检索用户并验证密码
+  - AuthService.validateUser: 接收username,password, 对client传递过来的密码进行加密, 并和数据库中保存的加密密码进行验证
+  - UserService.findOneUser, 查询用户信息, 在validateUser方法中验证密码
+  - auth/local.strategy.ts
+  - @nestjs/passport 模块为我们提供了一个内置的守卫，可以完成这一任务。这个保护调用 Passport 策略并启动上面描述的步骤(检索凭证、运行verify 函数、创建用户属性等)
+    - 在user.controller中的login方法中,使用守卫,
+    ```ts
+      @UseGuards(AuthGuard('local'))
+      async login () {}
+    ```
+    - @UseGuards(AuthGuard('local')) 这个守卫的作用
+      - 1. 限制未经身份验证的用户可以访问的路由, 在受保护的路由上放置一个守卫
+      - 2. **Passport 特性: Passport 根据从 validate() 方法返回的值自动创建一个 user 对象，并将其作为 req.user 分配给请求对象**
+
+
+### 登录流程
+1. 客户端发出url路径请求 POST /user/login
+2. 进去本地守卫LocalAuthGuard
+3. passport内部调用 local.strategy.ts中的validate方法验证
+4. authService提供验证方法, validateUser被调用,
+5. 使用userService的查找一个用户的方法,然后验证用户名密码, 如果验证通过, 将返回值传递会调用处. local.strategy中的validate方法, 会将这个返回值设置到req.user属性上
+6. 验证通过, 进入controller中的login方法内部, 调用authService.certificate,将有用的非敏感信息作为payload,
+   (此处使用的数据不是用户请求发过来的参数,而是通过查询用户信息获得的有用信息)生成token
+7. this.authService.certificate(req.user.data) 只对有用信息签发token
+8. 对需要认证的接口进行装饰器操作 @UseGuards(AuthGuard('jwt'))
+9. 会调用jwt.strategy中的validate方法，内部自动验证。
+
+```ts
+@UseGuards(LocalAuthGuard) // 启用用户名密码验证策略,passport会自己调用local.strategy中的validate方法
+@Post('login')
+async login(@Request() req): Promise<any> {
+  console.log('3. LocalAuthGuard守卫验证通过');
+  // 根据用户的用户名密码验证结果执行不同的操作
+  return this.authService.certificate(req.user.data);
+}
+```

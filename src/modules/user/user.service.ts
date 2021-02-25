@@ -98,7 +98,6 @@ export class UserService {
           logging: true,
         })
       )[0];
-      console.log('user.service -> findOneUserById ', user);
       return user;
     } catch (err) {
       return {
@@ -114,7 +113,6 @@ export class UserService {
     `;
     try {
       const users = (await sequelize.query(sql))[0];
-      console.log(users);
       return users;
     } catch (err) {}
   }

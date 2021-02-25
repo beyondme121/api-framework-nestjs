@@ -11,54 +11,49 @@ export class AuthService {
   ) {}
   // JWT验证 - Step 2: 校验用户信息 (根据用户名和密码验证)
   async validateUser(username: string, password: string): Promise<any> {
-    console.log('JWT验证 - Step 2: 校验用户信息');
+    console.log('2. auth.service.validateUser');
     const user = await this.userService.findOneUser(username);
     if (user) {
       const hashedPwd = user.password;
       const salt = user.salt;
-      // 对客户端请求来的密码进行加密后和数据库中的密码对比
       const hashClientPwd = encryptPassword(password, salt);
+      const { id, username, email } = user;
       if (hashedPwd === hashClientPwd) {
         return {
           code: 0,
-          user,
+          data: {
+            id,
+            username,
+            email,
+          },
+          msg: '用户名密码验证通过',
         };
       } else {
         return {
           code: -1,
-          user: null,
+          data: null,
           msg: '密码错误或过期',
         };
       }
     } else {
       return {
         code: -2,
-        user: null,
+        data: null,
         msg: '查无此人',
       };
     }
   }
 
-  // 验证通过后签发token
+  // 验证通过后签发token, 将有用的非敏感信息, 放到payload中
   async certificate(user: any) {
+    console.log('4. 生成 JWT token');
     const payload = {
-      userid: user.id,
+      id: user.id,
       username: user.username,
-      // email: user.email,
+      email: user.email,
     };
-    console.log('JWT token 生成');
-    try {
-      const token = this.jwtService.sign(payload);
-      return {
-        code: 0,
-        token,
-        msg: '签发token成功',
-      };
-    } catch (error) {
-      return {
-        code: -1,
-        msg: '账号或密码错误',
-      };
-    }
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
   }
 }
