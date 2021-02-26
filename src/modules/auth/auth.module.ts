@@ -8,15 +8,17 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { jwtConstants } from 'src/config/constants';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+// import { RedisUtilModule } from './../redis-utils/redis.module';
 
 @Module({
   imports: [
-    forwardRef(() => UserModule),
     PassportModule.register({ defaultStrategy: 'jwt' }), // 默认策略
     JwtModule.register({
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '8h' },
     }),
+    forwardRef(() => UserModule),
+    // RedisUtilModule,
   ],
   providers: [
     AuthService,

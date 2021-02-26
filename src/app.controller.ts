@@ -1,12 +1,9 @@
 import { Controller, Get, HttpException, HttpStatus } from '@nestjs/common';
 import { AppService } from './app.service';
-import { RedisUtilsService } from './modules/redis-utils/redis-utils.service'
+import { RedisUtilService } from './modules/redis-utils/redis.service';
 @Controller()
 export class AppController {
-  constructor(
-    private readonly appService: AppService,
-    private readonly redisService: RedisUtilsService
-  ) {}
+  constructor(private readonly appService: AppService) {}
 
   @Get()
   getHello(): string {
@@ -16,6 +13,7 @@ export class AppController {
 
   @Get('redis-test')
   async setKeyToRedisTest(): Promise<any> {
-    await this.redisService.set('hello', 'world')
+    console.log('redis-test');
+    // await this.redisService.set('hello', 'world');
   }
 }

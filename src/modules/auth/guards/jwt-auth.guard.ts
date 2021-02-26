@@ -6,6 +6,8 @@ import {
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from 'src/decorators/public.decorator';
+// import { RedisUtilService } from 'src/modules/redis-utils/redis.service';
+// import { RedisInstance } from './../../../utils/redis';
 // 创建自己的类
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -14,7 +16,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   canActivate(context: ExecutionContext) {
-    // Add your custom authentication logic here; for example, call super.logIn(request) to establish a session.
+    // 1. 设置跳过jwt验证的步骤
     const skipAuth = this.reflect.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -22,6 +24,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     if (skipAuth) {
       return true;
     }
+
     return super.canActivate(context);
   }
 

@@ -5,7 +5,7 @@ import { ConfigModule, ConfigService } from 'nestjs-config';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { RedisUtilsModule } from './modules/redis-utils/redis-utils.module';
+import { RedisUtilModule } from './modules/redis-utils/redis.module';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { RoleModule } from './modules/role/role.module';
@@ -34,7 +34,7 @@ import { RoleModule } from './modules/role/role.module';
       inject: [ConfigService],
     }),
     // TypeOrmModule.forRoot(),
-    RedisUtilsModule,
+    RedisUtilModule,
     UserModule,
     AuthModule,
     RoleModule,

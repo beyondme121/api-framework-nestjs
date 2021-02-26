@@ -1,5 +1,5 @@
 import { Sequelize } from 'sequelize-typescript';
-import getConfig from '../config/db-sequelize.config';
+import getConfig from '../config/db.config';
 
 let db = getConfig(process.env.NODE_ENV);
 

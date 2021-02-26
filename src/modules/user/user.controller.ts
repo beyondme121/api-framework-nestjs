@@ -19,6 +19,7 @@ import { ValidationPipe } from './../../pipes/validation.pipe';
 // dto
 import { CreateUserDto } from './dto/create.user.dto';
 import { LoginUserDto } from './dto/login.user.dto';
+import { SkipAuth } from 'src/decorators/public.decorator';
 
 @UsePipes(ValidationPipe) // 控制器级别
 @Controller('user')
@@ -29,29 +30,14 @@ export class UserController {
   ) {}
 
   // 用户注册
+  @SkipAuth()
   @Post('register')
   async register(@Body() body: CreateUserDto) {
     return await this.userService.create(body);
   }
 
   // 登录
-  // @UsePipes(ValidationPipe)
-  // @UseGuards(LocalAuthGuard) // 启用用户名密码验证策略,passport会自己调用local.strategy中的validate方法
-  // @Post('login')
-  // async login(@Body() loginParams: LoginUserDto): Promise<any> {
-  //   const result = await this.authService.validateUser(
-  //     loginParams.username,
-  //     loginParams.password,
-  //   );
-  //   // 根据用户的用户名密码验证结果执行不同的操作
-  //   switch (result.code) {
-  //     case 0:
-  //       return this.authService.certificate(result.data);
-  //     default:
-  //       return result;
-  //   }
-  // }
-
+  @SkipAuth()
   @UseGuards(LocalAuthGuard) // 启用用户名密码验证策略,passport会自己调用local.strategy中的validate方法
   @Post('login')
   async login(

@@ -1,7 +1,8 @@
+import { RedisInstance } from './../../utils/redis';
 import { UserService } from './../user/user.service';
 import { Injectable } from '@nestjs/common';
-import { encryptPassword } from 'src/utils/crypto_salt';
 import { JwtService } from '@nestjs/jwt';
+import { encryptPassword } from 'src/utils/crypto_salt';
 
 @Injectable()
 export class AuthService {
@@ -46,14 +47,28 @@ export class AuthService {
 
   // 验证通过后签发token, 将有用的非敏感信息, 放到payload中
   async certificate(user: any) {
-    console.log('4. 生成 JWT token');
+    console.log('4. 生成 JWT token, 并将token存储到redis中');
     const payload = {
       id: user.id,
       username: user.username,
       email: user.email,
     };
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
+    const token = await this.jwtService.sign(payload);
+    try {
+      // 实例化redis
+      const redis = await RedisInstance.initRedis('auth.certificate', 0);
+      // 将用户信息和 token 存入 redis，并设置失效时间，语法：[key, seconds, value]
+      await redis.setex(`${user.id}-${user.username}`, 300, `${token}`);
+      return {
+        code: 0,
+        access_token: token,
+        msg: '登录成功',
+      };
+    } catch (err) {
+      return {
+        code: -1,
+        msg: '登录失败',
+      };
+    }
   }
 }
