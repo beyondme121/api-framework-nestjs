@@ -24,7 +24,9 @@ export class RbacGuard implements CanActivate {
 
     // 如果 token 不匹配，禁止访问, 实现单点登录
     if (token !== cache) {
-      throw new UnauthorizedException('您的账号在其他地方登录，请重新登录');
+      throw new UnauthorizedException(
+        '您的账号在其他地方登录或登录超时，请重新登录',
+      );
     }
 
     // 判断用户的角色

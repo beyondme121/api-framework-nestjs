@@ -1,7 +1,16 @@
-import { Controller, Get, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  UseInterceptors,
+  CacheInterceptor,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 import { RedisUtilService } from './modules/redis-utils/redis.service';
+
 @Controller()
+@UseInterceptors(CacheInterceptor)
 export class AppController {
   constructor(private readonly appService: AppService) {}
 

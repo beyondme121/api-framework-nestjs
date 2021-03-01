@@ -149,3 +149,10 @@ providers: [
 ],
 ```
 
+### redis 参考资料
+> https://juejin.cn/post/6844903943688945677#heading-13
+
+
+## 使用缓存
+> https://www.cnblogs.com/ajanuw/p/9606456.html
+> 

@@ -1,7 +1,8 @@
 import * as path from 'path';
-import { Module } from '@nestjs/common';
+import { CacheModule, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from 'nestjs-config';
+import * as redisStore from 'cache-manager-redis-store';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -32,6 +33,19 @@ import { RoleModule } from './modules/role/role.module';
         autoLoadModels: true,
       }),
       inject: [ConfigService],
+    }),
+    // 内置缓存设置
+    // CacheModule.register({
+    //   ttl: 50,
+    //   max: 1000,
+    // }),
+    CacheModule.register({
+      store: redisStore,
+      host: 'localhost', // default value
+      port: 6379, // default value
+      auth_pass: '123456',
+      db: 0,
+      ttl: 600,
     }),
     // TypeOrmModule.forRoot(),
     RedisUtilModule,
