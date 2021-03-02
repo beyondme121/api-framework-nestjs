@@ -48,13 +48,13 @@ export class AuthService {
 
   // 验证通过后签发token, 将有用的非敏感信息, 放到payload中
   async certificate(user: any) {
-    console.log('4. 生成 JWT token, 并将token存储到redis中', user);
     const token = await this.jwtService.sign(user);
+    // const res = await this.jwtService.decode(token);
     try {
       // 实例化redis
       const redis = await RedisInstance.initRedis('auth.certificate', 0);
       // 将用户信息和 token 存入 redis，并设置失效时间，语法：[key, seconds, value]
-      await redis.setex(`${user.id}-${user.username}`, 60 * 60, `${token}`);
+      await redis.setex(`${user.id}-${user.username}`, 60 * 60 * 8, `${token}`);
       return {
         code: 0,
         access_token: token,

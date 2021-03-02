@@ -18,20 +18,6 @@ export class RoleController {
   @UseGuards(RbacGuard)
   @Get()
   async findAll(): Promise<any> {
-    console.log('role findall');
     return this.roleService.findAll();
   }
-
-  // 测试缓存
-
-  // async getRoleNameCache(@Query('key') key: string) {
-  //   // const value = this.cacheManager.get(key);
-  //   // console.log('cache key is ', key, ' value is ', value);
-  //   // return value;
-  // }
-
-  // async setRoleNameCache(@Query() query: { [propNames: string]: string }) {
-  //   let { key, value } = query;
-  //   // await this.cacheManager.set(key, value, { ttl: 1000 }); // 1000秒 {ttl: null} 不设置过期时间
-  // }
 }

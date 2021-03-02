@@ -35,7 +35,6 @@ export class RoleService {
   async findAll(): Promise<Role[]> {
     let redisTemp = await this.redisCacheService.get('roleList');
     if (redisTemp) {
-      console.log('从redis缓存中获取了数据');
       return redisTemp;
     }
     // 使用redis缓存的方式

@@ -161,3 +161,16 @@ providers: [
 ## 使用typeorm是的同步问题
 更新了实体entity, 如果比数据库中表的字段少, db中的table数据就会删除了. 
 TODO: 查看怎么设置!! synchronize: false... 然后怎么迁移
+
+
+
+## jwtAuthGuard和RbacGuard中设计的redis的token验证的执行顺序
+- 由于jwtAuthGuard定义为全局守卫, 所以流程先流向了 JwtAuthGuard
+- 调用 JwtAuthGuard的canActivate方法进行验证, 是否请求是否可以通过
+- JwtAuthGuard的canActivate 内部调用了父类的方法 super.canActivate(context); JwtAuthGuard类继承了AuthGuard('jwt')
+  - 其中AuthGuard从'@nestjs/passport'导出, passport内部封装了很多策略,比如jwt-strategy
+- jwt.strategy.ts中validate方法
+- jwtAuthGuard.handleRequest方法
+- 然后再走另外一个守卫 @UseGuards(RbacGuard) 验证token是否一致, 如果和redis中保存的一致,就放行
+  - 根据key从redis中查找value, 如果匹配不上, 就验证不通过, token失效
+- redis中的token过期时间应该和用户登录时certificate签发给用户,返回的token的过期时间保持一致

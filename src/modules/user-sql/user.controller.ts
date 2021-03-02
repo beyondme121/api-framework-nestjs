@@ -44,7 +44,6 @@ export class UserController {
     @Request() req,
     @Body() loginUserDto: LoginUserDto,
   ): Promise<any> {
-    console.log('3. LocalAuthGuard守卫验证通过', loginUserDto, req.user);
     return this.authService.certificate(req.user.data);
   }
 
@@ -76,7 +75,6 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Get('all')
   async findAll(@Request() req) {
-    console.log('user all, req.user', req.user);
     return await this.userService.findAll();
   }
 }

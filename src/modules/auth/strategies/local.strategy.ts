@@ -9,7 +9,6 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
   constructor(private readonly authService: AuthService) {
     super();
   }
-
   // 继承PassportStrategy, 实现validate方法
   async validate(username: string, password: string): Promise<any> {
     const result = await this.authService.validateUser(username, password);

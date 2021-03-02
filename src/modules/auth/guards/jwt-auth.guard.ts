@@ -6,8 +6,6 @@ import {
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from 'src/decorators/public.decorator';
-// import { RedisUtilService } from 'src/modules/redis-utils/redis.service';
-// import { RedisInstance } from './../../../utils/redis';
 // 创建自己的类
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -21,16 +19,18 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       context.getHandler(),
       context.getClass(),
     ]);
+
     if (skipAuth) {
       return true;
     }
-
     return super.canActivate(context);
   }
 
   handleRequest(err, user) {
     if (err || !user) {
-      throw err || new UnauthorizedException();
+      throw (
+        err || new UnauthorizedException({ msg: 'token验证失败,请重新登录' })
+      );
     }
     return user;
   }

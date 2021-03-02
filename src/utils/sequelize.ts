@@ -1,3 +1,4 @@
+import { Logger } from './log4js';
 import { Sequelize } from 'sequelize-typescript';
 import getConfig from '../config/db.config';
 
@@ -28,7 +29,7 @@ const sequelize = new Sequelize(
 sequelize
   .authenticate()
   .then(() => {
-    console.log('数据库连接成功');
+    Logger.info('Sequelize连接数据库成功');
   })
   .catch((err: any) => {
     // 数据库连接失败时打印输出
