@@ -1,3 +1,4 @@
+import { IResult } from '@src/types/result-type';
 import { ToolService } from './../../utils/tool.service';
 import { UpdateUserDTO } from './dto/update.user.dto';
 import { UserDetail } from './entities/user_detail.entity';
@@ -6,12 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, getConnection } from 'typeorm';
 import { CreateUserDTO } from './dto/create.user.dto';
 import { UserEntity } from './entities/user.entity';
-
-type result = {
-  code: number;
-  data?: object;
-  msg: string;
-};
+import { ModifyPasswordDTO } from './dto/modify.password.dto';
+import { StatusCode } from '@src/config/constants';
 
 @Injectable()
 export class UserService {
@@ -34,8 +31,8 @@ export class UserService {
     } = createUserDTO;
     if (password !== repassword) {
       return {
-        code: -1,
-        msg: '两次输入的密码不一致或者未填写',
+        code: StatusCode.REPASSWORD_NOT_MATCH,
+        msg: '两次输入的密码不一致',
       };
     }
     const [allUsers, userCount] = await this.userRepository.findAndCount({
@@ -43,7 +40,7 @@ export class UserService {
     });
     if (userCount > 0) {
       return {
-        code: -2,
+        code: StatusCode.USER_EXISTS,
         msg: '用户名已被注册',
       };
     }
@@ -53,21 +50,29 @@ export class UserService {
 
     // 创建用户实例
     let user = new UserEntity();
-    user.username = username;
-    user.password = hashPwd;
-    user.userNameCN = username_cn;
-    user.salt = salt;
-    user.create_time = new Date();
-    user.update_time = new Date();
+    Object.assign(user, {
+      username,
+      password: hashPwd,
+      userNameCN: username_cn,
+      salt,
+      create_time: new Date(),
+      update_time: new Date(),
+      email,
+      address,
+      type,
+      mobile,
+    });
 
     // 创建明细
     let userDetail = new UserDetail();
-    userDetail.email = email;
-    userDetail.address = address;
-    userDetail.type = type;
-    userDetail.mobile = mobile;
-    userDetail.create_time = new Date();
-    userDetail.update_time = new Date();
+    Object.assign(userDetail, {
+      email,
+      address,
+      type,
+      mobile,
+      create_time: new Date(),
+      update_time: new Date(),
+    });
 
     // 建立关联
     user.detail = userDetail;
@@ -75,27 +80,60 @@ export class UserService {
     return await this.userRepository.save(user);
   }
 
-  // 删除
-  async deleteById(id: number): Promise<result> {
+  // 软删除
+  async deleteById(id: number): Promise<IResult> {
     const {
       raw: { affectedRows },
     } = await this.userRepository.update(id, { is_del: 1 });
     if (affectedRows) {
       return {
-        code: 0,
+        code: StatusCode.SUCCESS,
         msg: '删除成功',
       };
     } else {
       return {
-        code: 0,
+        code: StatusCode.FAILED,
         msg: '删除失败',
       };
     }
   }
 
-  // 修改用户信息
+  // 修改用户基本信息
   async modifyUserById(id: number, data: UpdateUserDTO) {
-    const { password, newPassword, isDel } = data;
+    const { email, address, mobile, type } = data;
+    const currentUser = await this.userRepository.findOne({ where: { id } });
+    // 如果用户的老密码正确
+    if (currentUser) {
+      let {
+        raw: { affectedRows },
+      } = await this.userRepository.update(id, {
+        email,
+        address,
+        mobile,
+        type,
+      });
+      if (affectedRows) {
+        return {
+          code: StatusCode.SUCCESS,
+          msg: '修改成功',
+        };
+      } else {
+        return {
+          code: StatusCode.FAILED,
+          msg: '修改失败',
+        };
+      }
+    } else {
+      return {
+        code: StatusCode.NOT_FOUND_USER,
+        msg: '修改的用户不存在',
+      };
+    }
+  }
+
+  // 修改用户密码
+  async modifyPasswordById(id: number, data: ModifyPasswordDTO) {
+    const { password, newPassword } = data;
     const currentUser = await this.userRepository.findOne({ where: { id } });
     // 如果用户的老密码正确
     if (currentUser) {
@@ -106,23 +144,22 @@ export class UserService {
         } = await this.userRepository.update(id, {
           password: this.toolservice.encryptPassword(newPassword, salt),
           salt: salt,
-          is_del: Number(isDel),
         });
         if (affectedRows) {
           return {
-            code: 0,
+            code: StatusCode.SUCCESS,
             msg: '修改成功',
           };
         }
       } else {
         return {
-          code: -1,
-          msg: '修改失败,旧密码验证错误',
+          code: StatusCode.PASSWORD_ERR_EXPIRE,
+          msg: '密码修改失败,老密码输入错误',
         };
       }
     } else {
       return {
-        code: -2,
+        code: StatusCode.NOT_FOUND_USER,
         msg: '修改的用户不存在',
       };
     }
@@ -134,6 +171,18 @@ export class UserService {
       .createQueryBuilder(UserEntity, 'user')
       .where('user.username = :username', { username })
       .getOne();
+    return res;
+  }
+
+  // 通过用户id查找用户
+  async findOneById(id: number): Promise<any> {
+    let res = await this.userRepository.findOne({ id, is_del: 0 });
+    if (!res) {
+      return {
+        code: StatusCode.NOT_FOUND_USER,
+        msg: '用户不存在',
+      };
+    }
     return res;
   }
 

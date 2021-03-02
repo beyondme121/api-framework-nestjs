@@ -1,12 +1,15 @@
-import { IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateUserDTO {
-  @IsString({ message: '老密码不能为空' })
-  readonly password?: string;
+  @ApiProperty({ description: '邮箱' })
+  email: string;
 
-  @IsString({ message: '新密码必须为字符串类型' })
-  readonly newPassword?: string;
+  @ApiProperty({ description: '办公地址' })
+  address: string;
 
-  @IsString({ message: '是否删除字段必须是字符串类型' })
-  readonly isDel?: string;
+  @ApiProperty({ description: '手机号码' })
+  mobile: string;
+
+  @ApiProperty({ description: '用户类别' })
+  type: string;
 }

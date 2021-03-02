@@ -17,6 +17,7 @@ import { HttpExceptionFilter } from './filters/http-exception.filter'; // HTTP�
 import { AllExceptionFilter } from './filters/all-exception.filter'; // 所有异常过滤器
 // 管道
 import { ValidationPipe } from './pipes/validation.pipe'; // 请求参数验证
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 const HOST = process.env.HOST || 'locahost';
 const PORT = process.env.PORT || 8080;
@@ -53,6 +54,19 @@ async function bootstrap() {
 
   // 8. 全局注册管道 参数校验
   app.useGlobalPipes(new ValidationPipe());
+
+  // 配置api文档信息
+  const options = new DocumentBuilder()
+    .setTitle('Framework API doc')
+    .setDescription(
+      'Framework API 接口文档 基于nestjs后端服务框架开发的API系统',
+    )
+    .addBearerAuth({ type: 'apiKey', in: 'header', name: 'token' }) // 设置请求头的token字段
+    .setVersion('0.0.1')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, options);
+  SwaggerModule.setup(`${PREFIX}/docs`, app, document);
 
   await app.listen(PORT, HOST, () => {});
   Logger.log(`server start at ${HOST}:${PORT}/${PREFIX}`);

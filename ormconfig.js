@@ -8,6 +8,11 @@ module.exports = [
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
     logging: process.env.DB_LOGGING,
+    // 启动缓存QueryBuilder, 在QueryBuilder的加上.cache(60000)表示1分钟 , 也可以是Repository
+    // cache: {
+    //   duration: 30000 // 30s缓存
+    // },
+    cache: true,
     entities: ['dist/**/*.entity{.ts,.js}'],
     // 同步后端代码模型entity和数据库中的表的定义, 不删除数据
     synchronize: true,

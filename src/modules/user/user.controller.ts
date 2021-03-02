@@ -1,3 +1,4 @@
+import { ModifyPasswordDTO } from './dto/modify.password.dto';
 import { RbacGuard } from 'src/guards/rbac.guard';
 import { UpdateUserDTO } from './dto/update.user.dto';
 import { LocalAuthGuard } from './../auth/guards/local-auth.guard';
@@ -9,8 +10,11 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
   Query,
@@ -33,6 +37,7 @@ export class UserController {
   // 跳过jwt验证, 用户注册不需要先验证jwt验证(针对普通用户来说, 不针对管理员场景)
   @SkipAuth()
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   async createUser(@Body() createUserDTO: CreateUserDTO): Promise<UserEntity> {
     return await this.userService.create(createUserDTO);
   }
@@ -54,9 +59,9 @@ export class UserController {
     return await this.userService.deleteById(id);
   }
 
-  // 修改
+  // 修改 区别: Patch:更新部分数据, PUT:更新整条记录
   @UseGuards(RbacGuard)
-  @Put(':id')
+  @Patch(':id')
   async modifyUserById(
     @Param('id', new ParseIntPipe()) id: number,
     @Body() data: UpdateUserDTO,
@@ -64,8 +69,25 @@ export class UserController {
     return await this.userService.modifyUserById(id, data);
   }
 
+  @UseGuards(RbacGuard)
+  @Patch(':id')
+  async modifyPassword(
+    @Param('id', new ParseIntPipe()) id: number,
+    @Body() data: ModifyPasswordDTO,
+  ) {
+    return await this.userService.modifyPasswordById(id, data);
+  }
+
+  // 根据id查询用户
+  @UseGuards(RbacGuard)
+  @Get(':id')
+  async findById(
+    @Param('id', new ParseIntPipe()) id: number,
+  ): Promise<UserEntity> {
+    return await this.userService.findOneById(id);
+  }
+
   // 查询所有有效用户,单点登录, 校验请求携带的token和redis中的token是否一致
-  // @SkipAuth()
   @UseGuards(RbacGuard)
   @Get()
   async userList(@Query() queryOption: ObjectType) {

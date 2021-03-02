@@ -3,11 +3,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Module } from '@nestjs/common';
 import { RoleController } from './role.controller';
 import { RoleService } from './role.service';
-import { Role } from './entities/role.entity';
+import { RoleEntity } from './entities/role.entity';
 import { RedisUtilService } from '../redis-utils/redis.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Role])],
+  imports: [TypeOrmModule.forFeature([RoleEntity])],
   controllers: [RoleController],
   providers: [RoleService, RedisUtilService],
   exports: [TypeOrmModule],

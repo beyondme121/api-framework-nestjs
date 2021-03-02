@@ -7,11 +7,11 @@ import {
 } from 'typeorm';
 
 @Entity({ name: 'role' })
-export class Role {
+export class RoleEntity {
   @PrimaryGeneratedColumn({
     type: 'int',
     name: 'role_id',
-    comment: '角色id',
+    comment: '主键id',
   })
   role_id: number;
 
@@ -25,27 +25,43 @@ export class Role {
   })
   role_name: string;
 
-  @Column('varchar', {
+  @Column({
+    type: 'varchar',
+    nullable: false,
+    length: 100,
+    comment: '角色描述',
+  })
+  role_desc: string;
+
+  @Column('tinyint', {
     nullable: false,
     default: () => 0,
-    name: 'is_active',
-    comment: '角色是否激活',
+    name: 'is_del',
+    comment: '角色是否删除 0:在用; 1:已删除',
   })
-  is_active: string;
+  is_del: number;
+
+  @Column({
+    type: 'int',
+    nullable: false,
+    name: 'created_by_user_id',
+    comment: '角色创建人',
+  })
+  createdByUserId: number;
 
   @CreateDateColumn({
     type: 'timestamp',
     nullable: false,
-    name: 'create_at',
+    name: 'create_time',
     comment: '角色创建时间',
   })
-  create_at: Date;
+  create_time: Date;
 
   @UpdateDateColumn({
     type: 'timestamp',
     nullable: false,
-    name: 'update_at',
+    name: 'update_time',
     comment: '角色更新时间',
   })
-  update_at: Date;
+  update_time: Date;
 }

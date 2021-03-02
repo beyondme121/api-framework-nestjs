@@ -1,25 +1,31 @@
 import { Exclude } from 'class-transformer';
 import { ObjectType } from 'src/types/object-type';
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { UserDetail } from './user_detail.entity';
 
 @Entity({ name: 'user' })
 export class UserEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({
+    type: 'int',
+    comment: '主键id',
+  })
   id: number;
 
   @Column({
+    type: 'varchar',
     length: 100,
+    name: 'username',
     nullable: false,
+    comment: '用户名',
   })
   username: string;
-
-  @Exclude()
-  @Column({
-    length: 32,
-    nullable: false,
-  })
-  password: string;
 
   @Column({
     length: 50,
@@ -32,21 +38,63 @@ export class UserEntity {
   @Column({
     type: 'varchar',
     length: 32,
+    nullable: false,
+    comment: '密码',
+  })
+  password: string;
+
+  @Exclude()
+  @Column({
+    type: 'varchar',
+    length: 32,
     comment: '密码盐',
   })
   salt: string;
 
   @Column({
-    type: 'int',
+    length: 50,
+    comment: '邮箱',
+  })
+  email: string;
+
+  @Column({
+    length: 100,
+    comment: '用户办公地址',
+  })
+  address: string;
+
+  @Column({
+    length: 11,
+    comment: '手机号码',
+  })
+  mobile: string;
+
+  @Column({
+    type: 'varchar',
+    comment: '用户类别:1.管理员 2. 普通用户',
+  })
+  type: string;
+
+  @Column({
+    type: 'tinyint',
+    nullable: false,
     default: () => 0,
     comment: '是否被删除 0: 正常在用, 1: 已删除',
   })
   is_del: number;
 
-  @Column()
+  @CreateDateColumn({
+    type: 'timestamp',
+    nullable: false,
+    comment: '创建时间',
+  })
   create_time: Date;
 
-  @Column()
+  @UpdateDateColumn({
+    type: 'timestamp',
+    nullable: false,
+    comment: '更新时间',
+  })
   update_time: Date;
 
   @OneToOne((type) => UserDetail, (userDetail) => userDetail.user, {
