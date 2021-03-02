@@ -1,27 +1,31 @@
+import { UpdateUserDTO } from './dto/update.user.dto';
+import { LocalAuthGuard } from './../auth/guards/local-auth.guard';
+import { LoginDTO } from './dto/login.dto';
 import { AuthService } from './../auth/auth.service';
-import { UserService } from './user.service';
+import { UserService } from './../user/user.service';
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
+  ParseIntPipe,
   Post,
+  Put,
   Query,
-  UseGuards,
-  UsePipes,
   Request,
+  UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { LocalAuthGuard } from '../auth/guards/local-auth.guard';
-import { JwtAuthGuard } from './../auth/guards/jwt-auth.guard';
-// 管道
-import { UserByIdPipe } from 'src/pipes/user-by-id.pipe';
-import { ValidationPipe } from './../../pipes/validation.pipe';
-// dto
-import { CreateUserDto } from './dto/create.user.dto';
-import { LoginUserDto } from './dto/login.user.dto';
+import { CreateUserDTO } from './dto/create.user.dto';
 import { SkipAuth } from 'src/decorators/public.decorator';
+import { UserEntity } from './entities/user.entity';
 
-@UsePipes(ValidationPipe) // 控制器级别
+type result = {
+  code: number;
+  data?: object;
+  msg: string;
+};
+
 @Controller('user')
 export class UserController {
   constructor(
@@ -29,54 +33,46 @@ export class UserController {
     private readonly authService: AuthService,
   ) {}
 
-  // 用户注册
+  // 创建用户(注册)
+  // 跳过jwt验证, 用户注册不需要先验证jwt验证(针对普通用户来说, 不针对管理员场景)
   @SkipAuth()
-  @Post('register')
-  async register(@Body() body: CreateUserDto) {
-    return await this.userService.create(body);
+  @Post()
+  async createUser(@Body() createUserDTO: CreateUserDTO): Promise<UserEntity> {
+    return await this.userService.create(createUserDTO);
   }
 
   // 登录
   @SkipAuth()
-  @UseGuards(LocalAuthGuard) // 启用用户名密码验证策略,passport会自己调用local.strategy中的validate方法
+  @UseGuards(LocalAuthGuard) // 用户名密码验证
   @Post('login')
-  async login(
-    @Request() req,
-    @Body() loginUserDto: LoginUserDto,
-  ): Promise<any> {
-    console.log('3. LocalAuthGuard守卫验证通过', loginUserDto, req.user);
-    return this.authService.certificate(req.user.data);
+  async login(@Request() req, @Body() loginDTO: LoginDTO) {
+    console.log('3. LocalAuthGuard守卫验证通过', loginDTO, req.user);
+    return await this.authService.certificate(req.user);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  // 根据用户id删除用户
+  @SkipAuth()
+  @Delete(':id')
+  async deleteById(
+    @Param('id', new ParseIntPipe()) id: number,
+  ): Promise<result> {
+    return await this.userService.deleteById(id);
+  }
+
+  // 修改
+  @SkipAuth()
+  @Put(':id')
+  async modifyUserById(
+    @Param('id', new ParseIntPipe()) id: number,
+    @Body() data: UpdateUserDTO,
+  ) {
+    return await this.userService.modifyUserById(id, data);
+  }
+
+  // 查询所有有效用户
+  @SkipAuth()
   @Get()
-  async getUserByName(
-    @Query('username') username: string,
-  ): Promise<any | undefined> {
-    return await this.userService.findOneUser(username);
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Get('byid')
-  async getUserById(@Query('id') id: string): Promise<any | undefined> {
-    return await this.userService.findOneUserById(id);
-  }
-
-  // 验证自定义管道 根据用户名直接返回用户实体,根据客户端传递过来的name参数,
-  // 通过管道, 查询数据库返回user对象
-  // user: UserEntity
-  @Get('getUserInfo')
-  async getUserInfo(@Query('name', UserByIdPipe) user) {
-    return {
-      id: user.id,
-      username: user.username,
-    };
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('all')
-  async findAll(@Request() req) {
-    console.log('user all, req.user', req.user);
-    return await this.userService.findAll();
+  async userList(@Query() queryOption: { [propNames: string]: string }) {
+    return await this.userService.userList(queryOption);
   }
 }

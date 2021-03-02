@@ -1,19 +1,23 @@
-import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
-// https://github.com/typestack/class-validator
-export class CreateUserDto {
-  @IsString({ message: '必须是字符串' })
+import { IsNotEmpty, IsString } from 'class-validator';
+
+export class CreateUserDTO {
+  @IsString({ message: '用户名必须为字符类型' })
   @IsNotEmpty({ message: '用户名不能为空' })
   username: string;
 
-  @MaxLength(14, {
-    message: '密码最大长度是14位',
-  })
-  @MinLength(6, {
-    message: '密码最小长度为6位',
-  })
+  @IsString({ message: '密码必须为字符类型' })
   @IsNotEmpty({ message: '密码不能为空' })
   password: string;
 
-  @IsNotEmpty({ message: '确认密码不能为空' })
+  @IsString({ message: '密码必须为字符类型' })
+  @IsNotEmpty({ message: '重复密码不能为空' })
   repassword: string;
+
+  @IsString({ message: '用户中文名必须为字符类型' })
+  username_cn: string;
+
+  mobile: string;
+  email: string;
+  address: string;
+  type: string;
 }

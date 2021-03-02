@@ -1,29 +1,50 @@
+import { UpdateUserDTO } from './dto/update.user.dto';
+import { UserDetail } from './entities/user_detail.entity';
+import {
+  makeSalt,
+  encryptPassword,
+  checkPassword,
+} from 'src/utils/crypto_salt';
 import { Injectable } from '@nestjs/common';
-import * as Sequelize from 'sequelize';
-import { formatDate } from 'src/utils';
-import { encryptPassword, makeSalt } from 'src/utils/crypto_salt';
-import sequelize from '../../utils/sequelize';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, getConnection, ObjectType } from 'typeorm';
+import { CreateUserDTO } from './dto/create.user.dto';
+import { UserEntity } from './entities/user.entity';
+
+type result = {
+  code: number;
+  data?: object;
+  msg: string;
+};
 
 @Injectable()
 export class UserService {
-  // 增加一个用户
-  async create(reqBody: any): Promise<any> {
-    const {
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+  ) {}
+
+  async create(createUserDTO: CreateUserDTO): Promise<any> {
+    let {
       username,
-      chinese_name,
       password,
       repassword,
-      mobile,
+      username_cn,
       email,
-    } = reqBody;
-    if (password !== repassword || !password || !repassword) {
+      address,
+      type,
+      mobile,
+    } = createUserDTO;
+    if (password !== repassword) {
       return {
         code: -1,
         msg: '两次输入的密码不一致或者未填写',
       };
     }
-    const user = await this.findOneUser(username);
-    if (user) {
+    const [allUsers, userCount] = await this.userRepository.findAndCount({
+      username,
+    });
+    if (userCount > 0) {
       return {
         code: -2,
         msg: '用户名已被注册',
@@ -31,89 +52,109 @@ export class UserService {
     }
     const salt = makeSalt();
     const hashPwd = encryptPassword(password, salt);
-    const createtime = formatDate(Date.now());
-    const sql = `
-      INSERT INTO user
-        (username, chinese_name, password, salt, email, mobile, status, create_time)
-      VALUES
-        ('${username}','${chinese_name}','${hashPwd}','${salt}','${email}','${mobile}', 1, '${createtime}')
-    `;
-    try {
-      // 返回结果是[id, 响应记录数]  => [11, 1]  => id=11, 新增1条记录
-      const result = await sequelize.query(sql, {
-        type: Sequelize.QueryTypes.INSERT,
-        raw: true,
-      });
+
+    // 创建用户实例
+    let user = new UserEntity();
+    user.username = username;
+    user.password = hashPwd;
+    user.userNameCN = username_cn;
+    user.salt = salt;
+    user.create_time = new Date();
+    user.update_time = new Date();
+
+    // 创建明细
+    let userDetail = new UserDetail();
+    userDetail.email = email;
+    userDetail.address = address;
+    userDetail.type = type;
+    userDetail.mobile = mobile;
+    userDetail.create_time = new Date();
+    userDetail.update_time = new Date();
+
+    // 建立关联
+    user.detail = userDetail;
+    // 建立了管理就可以级联保存并且在主表的entity中设置 cascade:true
+    return await this.userRepository.save(user);
+  }
+
+  // 删除
+  async deleteById(id: number): Promise<result> {
+    const {
+      raw: { affectedRows },
+    } = await this.userRepository.update(id, { is_del: 1 });
+    if (affectedRows) {
       return {
         code: 0,
-        msg: '添加用户成功',
+        msg: '删除成功',
       };
-    } catch (error) {
+    } else {
       return {
-        code: -1,
-        msg: `Service error: ${error}`,
+        code: 0,
+        msg: '删除失败',
       };
     }
   }
 
-  /**
-   * desc: 查询是否有该用户
-   * @param username
-   */
-  async findOneUser(username: string): Promise<any | undefined> {
-    let sql = `
-      SELECT 
-        id, username, password, salt, email
-      FROM
-        user
-      WHERE username = '${username}'
-    `;
-    try {
-      const user = (
-        await sequelize.query(sql, {
-          type: Sequelize.QueryTypes.SELECT, // 只返回结果对象, 不返回元数据对象, mysql中两者一样, 所以会输出相同的记录
-          raw: true,
-          logging: console.log,
-        })
-      )[0];
-      return user;
-    } catch (error) {
+  // 修改用户信息
+  async modifyUserById(id: number, data: UpdateUserDTO) {
+    const { password, newPassword, isDel } = data;
+    const currentUser = await this.userRepository.findOne({ where: { id } });
+    // 如果用户的老密码正确
+    if (currentUser) {
+      if (checkPassword(password, currentUser)) {
+        const salt = makeSalt();
+        const {
+          raw: { affectedRows },
+        } = await this.userRepository.update(id, {
+          password: encryptPassword(newPassword, salt),
+          salt: salt,
+          is_del: Number(isDel),
+        });
+        if (affectedRows) {
+          return {
+            code: 0,
+            msg: '修改成功',
+          };
+        }
+      } else {
+        return {
+          code: -1,
+          msg: '修改失败,旧密码验证错误',
+        };
+      }
+    } else {
       return {
-        code: 503,
-        msg: `服务器溜号了, ${error}`,
+        code: -2,
+        msg: '修改的用户不存在',
       };
     }
   }
 
-  async findOneUserById(id) {
-    let sql = `
-      SELECT username, email
-      from user where id = '${id}'
-    `;
-    try {
-      const user = (
-        await sequelize.query(sql, {
-          type: Sequelize.QueryTypes.SELECT,
-          raw: true,
-          logging: true,
-        })
-      )[0];
-      return user;
-    } catch (err) {
-      return {
-        code: 503,
-        msg: `服务器溜号了, ${err}`,
-      };
-    }
+  // 通过用户名查询用户
+  async findOneByUserName(username: string): Promise<any> {
+    let res = await getConnection()
+      .createQueryBuilder(UserEntity, 'user')
+      .where('user.username = :username', { username })
+      .getOne();
+    return res;
   }
 
-  async findAll(): Promise<any | undefined> {
-    let sql = `
-      SELECT * FROM user
-    `;
-    try {
-      const users = (await sequelize.query(sql))[0];
-      return users;
-    } catch (err) {}
+  // 查询所有用户
+  async userList(queryOptions) {
+    const { pageSize = 10, pageNumber = 1 } = queryOptions;
+    const [data, total] = await getConnection()
+      .createQueryBuilder(UserEntity, 'user')
+      .where('user.is_del = :is_del', { is_del: 0 })
+      .orderBy({ 'user.create_time': 'DESC' })
+      .skip((pageNumber - 1) * pageSize)
+      .take(pageSize)
+      .printSql()
+      .getManyAndCount();
+    return {
+      data,
+      total,
+      pageNumber,
+      pageSize,
+    };
   }
 }

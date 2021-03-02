@@ -1,13 +1,16 @@
+import { UserEntity } from './../user/entities/user.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { forwardRef, Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UserModule } from './../user/user.module';
+import { UserModule } from '../user/user.module';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { jwtConstants } from 'src/config/constants';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { UserService } from './../user/user.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
 // import { RedisUtilModule } from './../redis-utils/redis.module';
 
 @Module({
@@ -19,6 +22,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
     }),
     forwardRef(() => UserModule),
     // RedisUtilModule,
+    TypeOrmModule.forFeature([UserEntity]), // 为什么要加入这个User实体???
   ],
   providers: [
     AuthService,
@@ -29,6 +33,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
+    UserService,
   ],
   exports: [AuthService],
 })

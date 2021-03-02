@@ -1,5 +1,5 @@
 import { RedisInstance } from './../../utils/redis';
-import { UserService } from './../user/user.service';
+import { UserService } from '../user/user.service';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { encryptPassword } from 'src/utils/crypto_salt';
@@ -13,7 +13,8 @@ export class AuthService {
   // JWT验证 - Step 2: 校验用户信息 (根据用户名和密码验证)
   async validateUser(username: string, password: string): Promise<any> {
     console.log('2. auth.service.validateUser');
-    const user = await this.userService.findOneUser(username);
+    const user = await this.userService.findOneByUserName(username);
+    console.log('validateUser user: ', user);
     if (user) {
       const hashedPwd = user.password;
       const salt = user.salt;
@@ -47,7 +48,7 @@ export class AuthService {
 
   // 验证通过后签发token, 将有用的非敏感信息, 放到payload中
   async certificate(user: any) {
-    console.log('4. 生成 JWT token, 并将token存储到redis中');
+    console.log('4. 生成 JWT token, 并将token存储到redis中', user);
     const payload = {
       id: user.id,
       username: user.username,

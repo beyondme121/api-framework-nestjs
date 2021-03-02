@@ -155,4 +155,9 @@ providers: [
 
 ## 使用缓存
 > https://www.cnblogs.com/ajanuw/p/9606456.html
-> 
+
+
+
+## 使用typeorm是的同步问题
+更新了实体entity, 如果比数据库中表的字段少, db中的table数据就会删除了. 
+TODO: 查看怎么设置!! synchronize: false... 然后怎么迁移
