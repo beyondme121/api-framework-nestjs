@@ -1,47 +1,47 @@
+import { ToolService } from './../../utils/tool.service';
 import { RedisInstance } from './../../utils/redis';
 import { UserService } from '../user/user.service';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { encryptPassword } from 'src/utils/crypto_salt';
+import { StatusCode } from '../../config/constants';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly toolService: ToolService,
   ) {}
   // JWT验证 - Step 2: 校验用户信息 (根据用户名和密码验证)
-  async validateUser(username: string, password: string): Promise<any> {
-    console.log('2. auth.service.validateUser');
+  async validateUser(username: string, clientPassword: string): Promise<any> {
     const user = await this.userService.findOneByUserName(username);
-    console.log('validateUser user: ', user);
     if (user) {
-      const hashedPwd = user.password;
-      const salt = user.salt;
-      const hashClientPwd = encryptPassword(password, salt);
-      const { id, username, email } = user;
-      if (hashedPwd === hashClientPwd) {
+      const { password: dbPassword, salt } = user;
+      const hashClientPwd = this.toolService.encryptPassword(
+        clientPassword,
+        salt,
+      );
+      if (dbPassword === hashClientPwd) {
         return {
-          code: 0,
+          code: StatusCode.SUCCESS,
           data: {
-            id,
-            username,
-            email,
+            // 使用属性访问器 在UserEntity中定义的, 自定义返回不敏感的用户属性字段
+            ...user.toResponseObject,
           },
           msg: '用户名密码验证通过',
         };
       } else {
         return {
-          code: -1,
+          code: StatusCode.PASSWORD_ERR_EXPIRE,
           data: null,
           msg: '密码错误或过期',
         };
       }
     } else {
       return {
-        code: -2,
+        code: StatusCode.NOT_FOUND_USER,
         data: null,
-        msg: '查无此人',
+        msg: '用户不存在',
       };
     }
   }
@@ -49,12 +49,7 @@ export class AuthService {
   // 验证通过后签发token, 将有用的非敏感信息, 放到payload中
   async certificate(user: any) {
     console.log('4. 生成 JWT token, 并将token存储到redis中', user);
-    const payload = {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-    };
-    const token = await this.jwtService.sign(payload);
+    const token = await this.jwtService.sign(user);
     try {
       // 实例化redis
       const redis = await RedisInstance.initRedis('auth.certificate', 0);
@@ -63,6 +58,7 @@ export class AuthService {
       return {
         code: 0,
         access_token: token,
+        data: user, // 返回不敏感的用户信息
         msg: '登录成功',
       };
     } catch (err) {

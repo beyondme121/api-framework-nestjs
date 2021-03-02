@@ -1,13 +1,9 @@
+import { ToolService } from './../../utils/tool.service';
 import { UpdateUserDTO } from './dto/update.user.dto';
 import { UserDetail } from './entities/user_detail.entity';
-import {
-  makeSalt,
-  encryptPassword,
-  checkPassword,
-} from 'src/utils/crypto_salt';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, getConnection, ObjectType } from 'typeorm';
+import { Repository, getConnection } from 'typeorm';
 import { CreateUserDTO } from './dto/create.user.dto';
 import { UserEntity } from './entities/user.entity';
 
@@ -22,6 +18,7 @@ export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    private readonly toolservice: ToolService,
   ) {}
 
   async create(createUserDTO: CreateUserDTO): Promise<any> {
@@ -50,8 +47,9 @@ export class UserService {
         msg: '用户名已被注册',
       };
     }
-    const salt = makeSalt();
-    const hashPwd = encryptPassword(password, salt);
+
+    const salt = this.toolservice.addSalt();
+    const hashPwd = this.toolservice.encryptPassword(password, salt);
 
     // 创建用户实例
     let user = new UserEntity();
@@ -101,12 +99,12 @@ export class UserService {
     const currentUser = await this.userRepository.findOne({ where: { id } });
     // 如果用户的老密码正确
     if (currentUser) {
-      if (checkPassword(password, currentUser)) {
-        const salt = makeSalt();
+      if (this.toolservice.checkPassword(password, currentUser)) {
+        const salt = this.toolservice.addSalt();
         const {
           raw: { affectedRows },
         } = await this.userRepository.update(id, {
-          password: encryptPassword(newPassword, salt),
+          password: this.toolservice.encryptPassword(newPassword, salt),
           salt: salt,
           is_del: Number(isDel),
         });

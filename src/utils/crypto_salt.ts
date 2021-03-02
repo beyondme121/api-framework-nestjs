@@ -14,6 +14,7 @@ export function encryptPassword(password: string, salt: string): string {
     .toString('base64');
 }
 
+// 检查用户输入的密码与用户老的密码是否一致.
 export function checkPassword(password, user) {
   const hashedPwd = user.password;
   const salt = user.salt;

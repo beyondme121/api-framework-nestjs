@@ -1,3 +1,4 @@
+import { ToolService } from './../../utils/tool.service';
 import { AuthModule } from './../auth/auth.module';
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -11,6 +12,6 @@ import { UserService } from './user.service';
     forwardRef(() => AuthModule),
   ],
   controllers: [UserController],
-  providers: [UserService],
+  providers: [UserService, ToolService],
 })
 export class UserModule {}

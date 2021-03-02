@@ -1,4 +1,5 @@
 import { Exclude } from 'class-transformer';
+import { ObjectType } from 'src/types/object-type';
 import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { UserDetail } from './user_detail.entity';
 
@@ -53,4 +54,10 @@ export class UserEntity {
     cascade: true,
   })
   detail: UserDetail;
+
+  // 定义用户数据返回的内容
+  public get toResponseObject(): ObjectType {
+    const { password, salt, is_del, ...rest } = this;
+    return rest;
+  }
 }

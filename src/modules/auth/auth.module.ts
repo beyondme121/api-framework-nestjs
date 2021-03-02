@@ -1,3 +1,4 @@
+import { ToolService } from './../../utils/tool.service';
 import { UserEntity } from './../user/entities/user.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { forwardRef, Module } from '@nestjs/common';
@@ -34,6 +35,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       useClass: JwtAuthGuard,
     },
     UserService,
+    ToolService,
   ],
   exports: [AuthService],
 })
