@@ -174,3 +174,67 @@ TODO: 查看怎么设置!! synchronize: false... 然后怎么迁移
 - 然后再走另外一个守卫 @UseGuards(RbacGuard) 验证token是否一致, 如果和redis中保存的一致,就放行
   - 根据key从redis中查找value, 如果匹配不上, 就验证不通过, token失效
 - redis中的token过期时间应该和用户登录时certificate签发给用户,返回的token的过期时间保持一致
+
+
+
+### TypeORM事务操作
+- 事务的4个特性
+  - 原子性: 要么都成功, 要么都失败, 失败就回滚到最初的状态
+  - 一致性: 转账的例子
+  - 隔离性: 每个用户向数据库发起事务, DB都会分配一个隔离的事务, 互相不干扰, T1要么在T2前执行, 要么在T2结束后执行
+  - 持久性: 提交的数据就是永久的
+
+
+- 没有事务带来的问题
+  - 脏读: 一个事务读取了另一个事务未提交的数据, 比如别人给我转账, 别人没提交commit, 我就读到了给我转100万, 我就开心了, 然后别人再ROLLBACK, 就没了
+  - 不可重复度: 第一次查询是一个值, 另外一个事务更新了这条记录, 我再次查数据时, 数据变更了. 每次查询都是最新的数据. 就是重复度, 数据行可能被别的事务修改
+  - 幻读:第一次查询, 没有记录; 另外的事务插入insert一条记录, 你再查询, 数据就出来了.
+  - 解决不可重复读的方法是 锁行，解决幻读的方式是 锁表
+
+- 读未提交（Read uncommitted):并发最高，一致性最差的隔离级别, 会有"脏读"
+- 读已提交(Read commited): 避免脏读
+- 可重复度(Repeatable read): 避免脏读，不可重复读
+- 串行化(Serializable): 可避免 脏读、不可重复读、幻读 的发生.  级别最高, 效率最低,锁表的方式使得其他的线程只能在锁外等待
+
+MySQL: 默认: 可重复度
+Oracle: 默认: 读已提交；支持串行化, 读已提交
+
+
+
+### forEach和for区别
+- 内部执行异步的区别
+  - for: 等待异步执行完, 再执行for循环后面的同步语句
+  - forEach: 不等待forEach内部的异步调用, 直接之后forEach后面的语句
+  - 结论: 如果循环中包含了异步调用、并且循环后的同步操作调用了遍历后的结果，应该使用for循环代替forEach
+  
+```js
+async function log(info) {
+  return new Promise((resolve, reject) => {
+    try {
+      setTimeout(() => {
+        resolve(`${info}`);
+      }, 500);
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+async function funFor() {
+  for (let i = 0; i < 3; i++) {
+    let res = await log(`funFor is ${i}`);
+    console.log(res);
+  }
+  console.log('funFor is completed');
+}
+
+async function funForEach() {
+  [1, 2, 3].forEach(async (item) => {
+    let res = await log(`funForEach is ${item}`);
+    console.log(res);
+  });
+  console.log('funForEach is completed');
+  funFor();
+}
+funForEach();
+```

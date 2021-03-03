@@ -10,7 +10,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { jwtConstants } from 'src/config/constants';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { UserService } from './../user/user.service';
+import { UserService } from '../user/service/user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 // import { RedisUtilModule } from './../redis-utils/redis.module';
 

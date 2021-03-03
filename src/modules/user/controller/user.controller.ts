@@ -1,10 +1,10 @@
-import { ModifyPasswordDTO } from './dto/modify.password.dto';
+import { ModifyPasswordDTO } from '../dto/modify.password.dto';
 import { RbacGuard } from 'src/guards/rbac.guard';
-import { UpdateUserDTO } from './dto/update.user.dto';
-import { LocalAuthGuard } from './../auth/guards/local-auth.guard';
-import { LoginDTO } from './dto/login.dto';
-import { AuthService } from './../auth/auth.service';
-import { UserService } from './../user/user.service';
+import { UpdateUserDTO } from '../dto/update.user.dto';
+import { LocalAuthGuard } from '../../auth/guards/local-auth.guard';
+import { LoginDTO } from '../dto/login.dto';
+import { AuthService } from '../../auth/auth.service';
+import { UserService } from '../service/user.service';
 import {
   Body,
   Controller,
@@ -21,9 +21,9 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { CreateUserDTO } from './dto/create.user.dto';
+import { CreateUserDTO } from '../dto/create.user.dto';
 import { SkipAuth } from 'src/decorators/public.decorator';
-import { UserEntity } from './entities/user.entity';
+import { UserEntity } from '../entities/user.entity';
 import { ObjectType } from '@src/types';
 
 @Controller('user')

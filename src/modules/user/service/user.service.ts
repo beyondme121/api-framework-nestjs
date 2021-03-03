@@ -1,13 +1,13 @@
 import { IResult } from '@src/types/result-type';
-import { ToolService } from './../../utils/tool.service';
-import { UpdateUserDTO } from './dto/update.user.dto';
-import { UserDetail } from './entities/user_detail.entity';
+import { ToolService } from '../../../utils/tool.service';
+import { UpdateUserDTO } from '../dto/update.user.dto';
+import { UserDetail } from '../entities/user_detail.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, getConnection } from 'typeorm';
-import { CreateUserDTO } from './dto/create.user.dto';
-import { UserEntity } from './entities/user.entity';
-import { ModifyPasswordDTO } from './dto/modify.password.dto';
+import { CreateUserDTO } from '../dto/create.user.dto';
+import { UserEntity } from '../entities/user.entity';
+import { ModifyPasswordDTO } from '../dto/modify.password.dto';
 import { StatusCode } from '@src/config/constants';
 
 @Injectable()

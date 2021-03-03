@@ -1,6 +1,6 @@
 import { ToolService } from './../../utils/tool.service';
 import { RedisInstance } from './../../utils/redis';
-import { UserService } from '../user/user.service';
+import { UserService } from '../user/service/user.service';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { StatusCode } from '../../config/constants';

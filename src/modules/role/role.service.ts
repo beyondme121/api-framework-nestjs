@@ -200,7 +200,7 @@ export class RoleService {
       .createQueryBuilder(RoleEntity, 'role')
       .where('role.is_del = :is_del', { is_del })
       .orderBy({ 'role.create_time': 'DESC' })
-      .cache(20000)
+      .cache(60000)
       .printSql()
       .getMany();
     return {
