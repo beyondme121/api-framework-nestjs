@@ -1,3 +1,4 @@
+import { ToolService } from './../../utils/tool.service';
 import { IResult } from '@src/types/result-type';
 import { StatusCode } from '@src/config/constants';
 import { CreateRoleDto } from './dto/create.role.dto';
@@ -8,6 +9,7 @@ import { RoleEntity } from './entities/role.entity';
 import { RedisUtilService } from '../redis-utils/redis.service';
 import { UpdateRoleDto } from './dto/update.role.dto';
 import { ObjectType } from '@src/types';
+import { QueryOptionsRoleDTO } from './dto/query.options.role.dto';
 
 @Injectable()
 export class RoleService {
@@ -16,6 +18,7 @@ export class RoleService {
     private readonly roleRepository: Repository<RoleEntity>,
     @Inject(RedisUtilService)
     private readonly redisCacheService: RedisUtilService,
+    private readonly toolService: ToolService,
   ) {}
 
   // 创建角色
@@ -93,21 +96,34 @@ export class RoleService {
     }
   }
 
-  // 修改
-  async modifyRoleById(id: number, data: any): Promise<UpdateResult | IResult> {
-    const { role_name, role_desc, createdByUserId } = data;
+  // 修改角色信息, 允许修改自己的角色名称, 但是不允许修改名称为已经存在的角色
+  async modifyRoleById(
+    id: number,
+    data: UpdateRoleDto,
+  ): Promise<UpdateResult | IResult> {
+    const { role_name, role_desc, createdByUserId, is_del } = data;
+    // 1. 查询当前被修改id对应的角色
     const currentRole = await getConnection()
       .createQueryBuilder(RoleEntity, 'role')
       .where('role_id = :id', { id })
       .getOne();
-    const isExists = await this.findByRoleName(role_name);
-    if (isExists) {
+
+    if (!currentRole) {
       return {
         code: StatusCode.FAILED,
-        msg: '更新的角色名称已存在,换一个角色名称',
+        msg: '角色不存在, 无法更新',
       };
     }
-    if (currentRole) {
+    // 2. 修改后的名称是否存在
+    const isRoleNameExists = await this.findByRoleName(role_name);
+
+    // 3. 如果修改后的角色名称存在并且被修改的角色id和查到的id不一致,说明是两个角色,不被允许
+    if (isRoleNameExists && isRoleNameExists.role_id !== currentRole.role_id) {
+      return {
+        code: StatusCode.FAILED,
+        msg: '修改的角色名称已存在,换一个角色名称',
+      };
+    } else {
       let {
         raw: { affectedRows },
       } = await getConnection()
@@ -116,6 +132,7 @@ export class RoleService {
         .set({
           role_name,
           role_desc,
+          is_del,
           createdByUserId,
           update_time: new Date(),
         })
@@ -124,19 +141,14 @@ export class RoleService {
       if (affectedRows) {
         return {
           code: StatusCode.SUCCESS,
-          msg: '更新角色信息成功',
+          msg: '修改角色信息成功',
         };
       } else {
         return {
           code: StatusCode.FAILED,
-          msg: '更新角色失败',
+          msg: '修改角色失败',
         };
       }
-    } else {
-      return {
-        code: StatusCode.FAILED,
-        msg: '角色不存在无法更新',
-      };
     }
   }
 
@@ -199,11 +211,21 @@ export class RoleService {
   }
 
   // 分页查询
-  async findRoleListPage(queryOptions) {
-    let { is_del, pageSize = 10, pageNumber = 1 } = queryOptions;
+  async findRoleListPagination(queryOptions: QueryOptionsRoleDTO) {
+    let {
+      role_name,
+      role_desc,
+      is_del,
+      pageSize = 10,
+      pageNumber = 1,
+    } = queryOptions;
+    this.toolService.checkPaginationPage(pageSize, pageNumber);
     let data = await getConnection()
       .createQueryBuilder(RoleEntity, 'role')
       .where('role.is_del = :is_del', { is_del })
+      // .andWhere('role.role_name like :role_name', {
+      //   role_name: '%' + role_name + '%',
+      // })
       .orderBy({ 'role.create_time': 'DESC' })
       .skip((pageNumber - 1) * pageSize)
       .take(pageSize)

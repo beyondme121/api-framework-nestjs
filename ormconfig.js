@@ -7,7 +7,8 @@ module.exports = [
     database: process.env.DB_DATABASE,
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
-    logging: process.env.DB_LOGGING,
+    logging: Boolean(process.env.DB_LOGGING),
+    // logging: process.env.DB_LOGGING,
     // 启动缓存QueryBuilder, 在QueryBuilder的加上.cache(60000)表示1分钟 , 也可以是Repository
     // cache: {
     //   duration: 30000 // 30s缓存

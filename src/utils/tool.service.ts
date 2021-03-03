@@ -1,6 +1,7 @@
 import { UserEntity } from './../modules/user/entities/user.entity';
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import * as crypto from 'crypto';
+import { isInt } from 'class-validator';
 
 @Injectable()
 export class ToolService {
@@ -26,5 +27,14 @@ export class ToolService {
     const salt = user.salt;
     const hashClientPwd = this.encryptPassword(clientPassword, salt);
     return hashClientPwd === hashedPwd ? true : false;
+  }
+
+  checkPaginationPage(pageSize, pageNumber) {
+    if (!isInt(Number(pageSize)) || !isInt(Number(pageNumber))) {
+      throw new HttpException(
+        `传递的pageSize:${pageSize},pageNumber:${pageNumber}其中一个不是整数`,
+        HttpStatus.OK,
+      );
+    }
   }
 }
