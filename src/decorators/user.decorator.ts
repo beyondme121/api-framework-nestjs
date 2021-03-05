@@ -1,7 +1,8 @@
-// 用于对用户信息的获取
-// 支持参数 获取一个用户的某个属性, 也支持获取所有属性对象
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
+/**
+ * @description: 自定义装饰器 用来获取当前登录用户信息
+ */
 export const User = createParamDecorator(
   (data: string, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();

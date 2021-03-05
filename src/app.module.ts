@@ -7,9 +7,10 @@ import * as redisStore from 'cache-manager-redis-store';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { RedisUtilModule } from './modules/redis-utils/redis.module';
-import { UserModule } from './modules/user/user.module';
-import { AuthModule } from './modules/auth/auth.module';
-import { RoleModule } from './modules/role/role.module';
+import { UserModule } from './modules/admin/user/user.module';
+import { AuthModule } from './modules/admin/auth/auth.module';
+import { RoleModule } from './modules/admin/role/role.module';
+import { AccessModule } from './modules/admin/access/access.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { RoleModule } from './modules/role/role.module';
     UserModule,
     AuthModule,
     RoleModule,
+    AccessModule,
   ],
   controllers: [AppController],
   providers: [AppService],

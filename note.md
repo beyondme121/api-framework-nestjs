@@ -238,3 +238,33 @@ async function funForEach() {
 }
 funForEach();
 ```
+
+权限管理
+https://juejin.cn/post/6875858803984695304
+https://juejin.cn/post/6844904004984504333
+https://www.cnblogs.com/myindex/p/9116177.html
+
+https://juejin.cn/post/6844904165500518414 react-hook
+
+
+### xampp安装与避坑指南
+1. UAC window10问题, 也没有什么办法
+2. 设置my.ini给数据库加密码, 然后在这个配置文件中加入如下内容, navicat就可以通过密码连接成功了
+3. 也可以直接使用 MYSQL Workbench 使用用户名密码连接
+```
+# 新增
+skip-grant-tables
+```
+
+
+
+### 用户组
+- 给用户组 添加/删除/更新/ 多个用户(传递不同用户id就是更新, 不传递用户id就是删除) => 用户列表 [], [2,3], [2,2,3] => 测试通过
+- 删除用户组
+  - 软删除用户组  OK
+  - 删除用户组与用户关联表的数据 OK
+  - 删除用户组与角色关联表的数据
+
+
+- 给一个用户添加到多个用户组中
+  - bug: 如果当前用户id已经有用户组了, 不是bug, 就应该这样, 从userid来看, 就应该是看这个用户能有哪些用户组, 从用户组来看.

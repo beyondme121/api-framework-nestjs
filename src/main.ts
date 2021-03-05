@@ -61,7 +61,15 @@ async function bootstrap() {
     .setDescription(
       'Framework API 接口文档 基于nestjs后端服务框架开发的API系统',
     )
-    .addBearerAuth({ type: 'apiKey', in: 'header', name: 'token' }) // 设置请求头的token字段
+    // .addBearerAuth({ type: 'apiKey', in: 'header', name: 'token' }) // 设置请求头的token字段
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      'jwt',
+    )
     .setVersion('0.0.1')
     .build();
 

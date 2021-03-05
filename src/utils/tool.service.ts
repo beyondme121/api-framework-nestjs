@@ -1,4 +1,4 @@
-import { UserEntity } from './../modules/user/entities/user.entity';
+import { UserEntity } from '../modules/admin/user/entities/user/user.entity';
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { isInt } from 'class-validator';
