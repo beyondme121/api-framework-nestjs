@@ -81,8 +81,8 @@ export class RoleController {
     description: '根据角色名称精确查询',
   })
   @Get('byName')
-  async findRoleByRoleName(@Query('role_name') role_name: string) {
-    return await this.roleService.findByRoleName(role_name);
+  async findRoleByRoleName(@Query('roleName') roleName: string) {
+    return await this.roleService.findByRoleName(roleName);
   }
 
   @ApiOperation({
@@ -90,8 +90,8 @@ export class RoleController {
     description: '根据名称模糊查询角色',
   })
   @Get('byNameLike')
-  async findRoleByRoleLikeName(@Query('role_name') role_name: string) {
-    return await this.roleService.findByRoleLikeName(role_name);
+  async findRoleByRoleLikeName(@Query('roleName') roleName: string) {
+    return await this.roleService.findByRoleLikeName(roleName);
   }
 
   // 根据条件查询所有角色,不分页, 并进行缓存

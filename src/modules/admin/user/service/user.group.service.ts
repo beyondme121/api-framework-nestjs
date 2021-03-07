@@ -1,4 +1,4 @@
-import { StatusCode } from './../../../../config/constants';
+import { StatusCode } from '@src/config/constants';
 import { UserGroupRelationEntity } from './../entities/user/user-group-relation.entity';
 import { CreateUserGroupDTO } from './../dto/group/group.create.dto';
 import { UserGroupEntity } from './../entities/group/user-group.entity';
@@ -10,6 +10,7 @@ import {
   Repository,
   UpdateResult,
   EntityManager,
+  getManager,
 } from 'typeorm';
 import { UpdateUserGroupDTO } from '../dto/group/group.update.dto';
 import { GroupUserIdsList } from '../types/user-module-types';
@@ -21,6 +22,11 @@ export class UserGroupService {
     private readonly userGroupRepository: Repository<UserGroupEntity>,
   ) {}
 
+  /**
+   * 创建用户组
+   * @param createUserGroupDTO
+   * @returns
+   */
   async create(createUserGroupDTO: CreateUserGroupDTO): Promise<any> {
     let { userGroupName, userGroupNameEN, parentId } = createUserGroupDTO;
     let result = await this.userGroupRepository.findOne({
@@ -44,7 +50,7 @@ export class UserGroupService {
     return await getConnection().transaction(async (em: EntityManager) => {
       await em.update(UserGroupEntity, id, { status: 1 });
       await em.delete(UserGroupRelationEntity, {
-        userGroupId: id,
+        groupId: id,
       });
     });
   }
@@ -88,7 +94,7 @@ export class UserGroupService {
   async addOrUpdateOrDeleteUsersToGroup(
     groupUserIdsList: GroupUserIdsList,
   ): Promise<any> {
-    let { userGroupId, userIdsList } = groupUserIdsList;
+    let { groupId, userIdsList } = groupUserIdsList;
     // 去重用户
     let uniqueUserIdsList: number[] = Array.from(
       new Set(JSON.parse(userIdsList)),
@@ -100,7 +106,7 @@ export class UserGroupService {
         // 如果传入的是空用户id列表  ==> 删除用户组中的所有用户
         if (uniqueUserIdsList.length === 0) {
           await entityManager.delete(UserGroupRelationEntity, {
-            userGroupId,
+            groupId,
           });
           return {
             code: 0,
@@ -109,11 +115,11 @@ export class UserGroupService {
         } else {
           // 添加或者更新 UserGroupRelation
           await entityManager.delete(UserGroupRelationEntity, {
-            userGroupId,
+            groupId,
           });
           for (const item of uniqueUserIdsList) {
             await entityManager.save(UserGroupRelationEntity, {
-              userGroupId,
+              groupId,
               userId: Number(item),
               status: 0,
               createTime: new Date(),
@@ -140,5 +146,22 @@ export class UserGroupService {
           msg: '对用户组操作用户列表失败',
         };
       });
+  }
+
+  // 根据用户id(userId), 查询当前用户所属于那些用户组
+  async getGroupListByUserId(userId: number): Promise<any> {
+    let result = await getManager().query(`
+      SELECT * 
+      FROM user_group_relation a
+      INNER JOIN user_group b ON a.group_id=b.id
+      WHERE a.user_id=${userId}
+    `);
+    if (result) {
+      return {
+        code: StatusCode.SUCCESS,
+        data: result,
+        msg: `查询用户${userId}所有的分配的组`,
+      };
+    }
   }
 }

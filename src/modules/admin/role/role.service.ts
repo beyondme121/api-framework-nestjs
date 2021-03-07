@@ -23,19 +23,19 @@ export class RoleService {
 
   // 创建角色
   async create(user: ObjectType, createRoleDto: CreateRoleDto) {
-    let { role_name, role_desc } = createRoleDto;
-    let result = await this.findByRoleName(role_name);
+    let { roleName, roleDesc } = createRoleDto;
+    let result = await this.findByRoleName(roleName);
     if (result) {
       return {
-        code: StatusCode.ROLE_EXISTS,
+        code: StatusCode.FAILED,
         msg: '角色名称已存在',
       };
     }
     let userId = user.id;
     // 组织Role实体对应的数据
     let obj = {
-      role_name,
-      role_desc,
+      roleName,
+      roleDesc,
       createdByUserId: userId,
       create_time: new Date(),
       update_time: new Date(),
@@ -73,9 +73,9 @@ export class RoleService {
         .createQueryBuilder()
         .update(RoleEntity)
         .set({
-          is_del: 1,
+          status: 1,
         })
-        .where('role_id = :id', { id })
+        .where('roleId = :id', { id })
         .execute();
       if (affectedRows) {
         return {
@@ -101,13 +101,13 @@ export class RoleService {
     id: number,
     data: UpdateRoleDto,
   ): Promise<UpdateResult | IResult> {
-    const { role_name, role_desc, createdByUserId, is_del } = data;
+    const { roleName, roleDesc, createdByUserId, status } = data;
+    console.log(roleName, roleDesc, createdByUserId, status);
     // 1. 查询当前被修改id对应的角色
     const currentRole = await getConnection()
       .createQueryBuilder(RoleEntity, 'role')
-      .where('role_id = :id', { id })
+      .where('role.roleId = :id', { id })
       .getOne();
-
     if (!currentRole) {
       return {
         code: StatusCode.FAILED,
@@ -115,13 +115,12 @@ export class RoleService {
       };
     }
     // 2. 修改后的名称是否存在
-    const isRoleNameExists = await this.findByRoleName(role_name);
-
+    const roleInDB = await this.findByRoleName(roleName);
     // 3. 如果修改后的角色名称存在并且被修改的角色id和查到的id不一致,说明是两个角色,不被允许
-    if (isRoleNameExists && isRoleNameExists.role_id !== currentRole.role_id) {
+    if (roleInDB && roleInDB.roleId !== currentRole.roleId) {
       return {
         code: StatusCode.FAILED,
-        msg: '修改的角色名称已存在,换一个角色名称',
+        msg: '修改后角色名称已存在,请换一个角色名称',
       };
     } else {
       let {
@@ -130,13 +129,13 @@ export class RoleService {
         .createQueryBuilder()
         .update(RoleEntity)
         .set({
-          role_name,
-          role_desc,
-          is_del,
+          roleName: roleName || currentRole.roleName,
+          roleDesc: roleDesc || currentRole.roleDesc,
+          status: status || currentRole.status,
           createdByUserId,
-          update_time: new Date(),
+          updateTime: new Date(),
         })
-        .where('role_id = :id', { id })
+        .where('roleId = :id', { id })
         .execute();
       if (affectedRows) {
         return {
@@ -156,7 +155,7 @@ export class RoleService {
   async findByRoleId(id: number) {
     let data = await this.roleRepository
       .createQueryBuilder('role')
-      .where('role.role_id = :id', { id })
+      .where('role.roleId = :id', { id })
       .printSql()
       .getOne();
     if (data) {
@@ -167,75 +166,113 @@ export class RoleService {
       };
     } else {
       return {
-        code: StatusCode.ROLE_NOT_EXISTS,
+        code: StatusCode.FAILED,
         msg: '角色不存在',
       };
     }
   }
 
   // 根据角色名称查询-精确匹配
-  async findByRoleName(name: string): Promise<RoleEntity> {
+  async findByRoleName(name: string): Promise<any> {
     let data = await getConnection()
       .createQueryBuilder(RoleEntity, 'role')
-      .where('role.role_name = :name', { name })
+      .where('role.roleName = :name', { name })
       .printSql()
       .getOne();
-    return data;
+    if (data) {
+      return {
+        code: StatusCode.SUCCESS,
+        data,
+        msg: '查询成功',
+      };
+    } else {
+      return {
+        code: StatusCode.NOT_FOUND,
+        msg: '查无数据',
+      };
+    }
   }
 
   // 根据角色名称模糊查询
-  async findByRoleLikeName(name: string): Promise<RoleEntity[]> {
+  async findByRoleLikeName(name: string): Promise<any> {
     let data = await getConnection()
       .createQueryBuilder(RoleEntity, 'role')
-      .where('role.role_name like :name', { name: '%' + name + '%' })
+      .where('role.roleName like :name', { name: '%' + name + '%' })
       .printSql()
       .getMany();
-    return data;
+    if (data.length > 0) {
+      return {
+        code: StatusCode.SUCCESS,
+        data,
+        msg: '查询成功',
+      };
+    } else {
+      return {
+        code: StatusCode.NOT_FOUND,
+        msg: '查无数据',
+      };
+    }
   }
 
   // 根据条件, 查询满足条件的所有数据, 并缓存数据30s
-  async findRoleListCache(queryOptions) {
-    let { is_del } = queryOptions;
+  async findRoleListCache(queryOptions): Promise<any> {
+    let { status } = queryOptions;
     let data = await getConnection()
       .createQueryBuilder(RoleEntity, 'role')
-      .where('role.is_del = :is_del', { is_del })
-      .orderBy({ 'role.create_time': 'DESC' })
+      .where('role.status = :status', { status })
+      .orderBy({ 'role.createTime': 'DESC' })
       .cache(60000)
       .printSql()
       .getMany();
-    return {
-      code: StatusCode.SUCCESS,
-      data,
-      msg: '查询数据成功',
-    };
+
+    if (data.length > 0) {
+      return {
+        code: StatusCode.SUCCESS,
+        data,
+        msg: '查询成功',
+      };
+    } else {
+      return {
+        code: StatusCode.NOT_FOUND,
+        msg: '查无数据',
+      };
+    }
   }
 
   // 分页查询
   async findRoleListPagination(queryOptions: QueryOptionsRoleDTO) {
     let {
-      role_name,
-      role_desc,
-      is_del,
+      roleName,
+      roleDesc,
+      status = 0,
       pageSize = 10,
       pageNumber = 1,
     } = queryOptions;
     this.toolService.checkPaginationPage(pageSize, pageNumber);
     let data = await getConnection()
       .createQueryBuilder(RoleEntity, 'role')
-      .where('role.is_del = :is_del', { is_del })
+      .where('role.status = :status', { status })
       // .andWhere('role.role_name like :role_name', {
       //   role_name: '%' + role_name + '%',
       // })
-      .orderBy({ 'role.create_time': 'DESC' })
+      .orderBy({ 'role.createTime': 'DESC' })
       .skip((pageNumber - 1) * pageSize)
       .take(pageSize)
       .printSql()
       .getMany();
-    return {
-      code: StatusCode.SUCCESS,
-      data,
-      msg: '查询数据成功',
-    };
+
+    if (data.length > 0) {
+      return {
+        code: StatusCode.SUCCESS,
+        data,
+        msg: '查询数据成功',
+      };
+    } else {
+      return {
+        code: StatusCode.NOT_FOUND,
+        msg: '查无数据',
+      };
+    }
   }
 
   // -------------------------- 将查询结果存入redis中进行缓存  --------------------------

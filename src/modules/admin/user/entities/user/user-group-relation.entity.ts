@@ -16,10 +16,10 @@ export class UserGroupRelationEntity {
 
   @Column({
     type: 'int',
-    name: 'user_group_id',
+    name: 'group_id',
     comment: '用户组id',
   })
-  userGroupId: number;
+  groupId: number;
 
   @Column({
     type: 'int',

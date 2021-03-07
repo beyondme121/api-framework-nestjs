@@ -64,11 +64,11 @@ export class UserRoleService {
     const alreadyRoleIdMapArray = alreadyRoleList.map((item) => item.roleId);
 
     // 获取所有的角色 await this.roleRepository.find({ where: {isDel: 0}})
-    const { data } = await this.roleService.findRoleListCache({ is_del: 0 });
+    const { data } = await this.roleService.findRoleListCache({ status: 0 });
     return data.map((item) => ({
-      id: item.role_id,
-      title: item.role_name,
-      isAuthorized: alreadyRoleIdMapArray.includes(item.role_id) ? 1 : 0,
+      id: item.roleId,
+      title: item.roleName,
+      isAuthorized: alreadyRoleIdMapArray.includes(item.roleId) ? 1 : 0,
     }));
   }
 }

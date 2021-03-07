@@ -53,8 +53,8 @@ export class UserGroupController {
   async addOrUpdateOrDeleteUsersToGroup(
     @Body() groupUserIdsList: GroupUserIdsList,
   ) {
-    let { userGroupId, userIdsList } = groupUserIdsList;
-    if (!userGroupId) {
+    let { groupId, userIdsList } = groupUserIdsList;
+    if (!groupId) {
       return {
         code: StatusCode.FAILED,
         msg: '用户组id必能为空',
@@ -70,5 +70,13 @@ export class UserGroupController {
         groupUserIdsList,
       );
     }
+  }
+
+  @UseGuards(RbacGuard)
+  @Get('userId/:userId')
+  async getUserInfoByGroupId(
+    @Param('userId', new ParseIntPipe()) userId: number,
+  ) {
+    return await this.userGroupService.getGroupListByUserId(userId);
   }
 }

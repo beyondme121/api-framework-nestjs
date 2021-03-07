@@ -28,7 +28,7 @@ export class RedisUtilService {
   ): Promise<void> {
     value = JSON.stringify(value);
     if (!second) {
-      await this.client.setex(key, 24 * 60 * 60, value); // 秒为单位
+      await this.client.setex(key, 60 * 60 * 24 * 30, value); // 秒为单位
     } else {
       await this.client.set(key, value, 'EX', second);
     }

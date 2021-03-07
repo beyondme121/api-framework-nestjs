@@ -13,7 +13,7 @@ export class RoleEntity {
     name: 'role_id',
     comment: '主键id',
   })
-  role_id: number;
+  roleId: number;
 
   @Column({
     type: 'varchar',
@@ -23,7 +23,7 @@ export class RoleEntity {
     name: 'role_name',
     comment: '角色名称',
   })
-  role_name: string;
+  roleName: string;
 
   @Column({
     type: 'varchar',
@@ -31,15 +31,15 @@ export class RoleEntity {
     length: 100,
     comment: '角色描述',
   })
-  role_desc: string;
+  roleDesc: string;
 
   @Column('tinyint', {
     nullable: false,
     default: () => 0,
-    name: 'is_del',
+    name: 'status',
     comment: '角色是否删除 0:在用; 1:已删除',
   })
-  is_del: number;
+  status: number;
 
   @Column({
     type: 'int',
@@ -55,7 +55,7 @@ export class RoleEntity {
     name: 'create_time',
     comment: '角色创建时间',
   })
-  create_time: Date;
+  createTime: Date;
 
   @UpdateDateColumn({
     type: 'timestamp',
@@ -63,5 +63,5 @@ export class RoleEntity {
     name: 'update_time',
     comment: '角色更新时间',
   })
-  update_time: Date;
+  updateTime: Date;
 }

@@ -1,3 +1,4 @@
+import { UserEntity } from './../entities/user/user.entity';
 import { UserGroupRelationEntity } from './../entities/user/user-group-relation.entity';
 import { UserGroupIdsList } from './../types/user-module-types';
 import { IResult } from '@src/types/result-type';
@@ -5,9 +6,8 @@ import { ToolService } from '../../../../utils/tool.service';
 import { UpdateUserDTO } from '../dto/user/user.update.dto';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, getConnection, EntityManager } from 'typeorm';
+import { Repository, getConnection, EntityManager, getManager } from 'typeorm';
 import { CreateUserDTO } from '../dto/user/user.create.dto';
-import { UserEntity } from '../entities/user/user.entity';
 import { ModifyPasswordDTO } from '../dto/user/user.modify.password.dto';
 import { StatusCode } from '@src/config/constants';
 import { Logger } from '@src/utils';
@@ -168,7 +168,7 @@ export class UserService {
   }
 
   /**
-   * @description 给一个用户添加到多个用户组中(1:m)
+   * @description 操作(添加/更新)用户对应的用户组(1:m)
    * @param userGroupIdsList
    */
   async addOrUpdateOrDeleteOneUserToGroupList(
@@ -196,7 +196,7 @@ export class UserService {
           for (const item of uniqueGroupIdsList) {
             await entityManager.save(UserGroupRelationEntity, {
               userId,
-              userGroupId: Number(item),
+              groupId: Number(item),
               status: 0,
               createTime: new Date(),
               updateTime: new Date(),
@@ -222,5 +222,24 @@ export class UserService {
           msg: '操作(添加/删除/更新)用户对应的用户组失败',
         };
       });
+  }
+
+  // 根据用户组id(groupId)查询所有该用户组下的所有用户
+  async getUserListByGroupId(groupId: number): Promise<any> {
+    // 复杂查询使用sql
+    let result = await getManager().query(`
+      select * 
+      from user_group_relation a 
+      inner join user b on a.user_id = b.id
+      where a.group_id=${groupId}
+    `);
+
+    if (result) {
+      return {
+        code: StatusCode.SUCCESS,
+        data: result,
+        msg: '查询成功',
+      };
+    }
   }
 }

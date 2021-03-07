@@ -1,7 +1,7 @@
+import { RbacGuard } from './../../../../guards/rbac.guard';
 import { StatusCode } from './../../../../config/constants';
 import { UserGroupIdsList } from './../types/user-module-types';
 import { ModifyPasswordDTO } from '../dto/user/user.modify.password.dto';
-import { RbacGuard } from 'src/guards/rbac.guard';
 import { UpdateUserDTO } from '../dto/user/user.update.dto';
 import { LocalAuthGuard } from '../../auth/guards/local-auth.guard';
 import { LoginDTO } from '../dto/user/user.login.dto';
@@ -84,7 +84,7 @@ export class UserController {
 
   // 根据id查询用户
   @UseGuards(RbacGuard)
-  @Get(':id')
+  @Get('userinfo/:id')
   async findById(
     @Param('id', new ParseIntPipe()) id: number,
   ): Promise<UserEntity> {
@@ -93,12 +93,12 @@ export class UserController {
 
   // 查询所有有效用户,单点登录, 校验请求携带的token和redis中的token是否一致
   @UseGuards(RbacGuard)
-  @Get()
+  @Get('list')
   async userList(@Query() queryOption: ObjectType) {
-    debugger;
     return await this.userService.userList(queryOption);
   }
 
+  @UseGuards(RbacGuard)
   @Post('groups')
   async addOrUpdateOrDeleteOneUserToGroupList(
     @Body() userGroupIdsList: UserGroupIdsList,
@@ -120,5 +120,14 @@ export class UserController {
         userGroupIdsList,
       );
     }
+  }
+
+  // 根据用户组id查询当前用户组下的所有用户
+  @UseGuards(RbacGuard)
+  @Get('groupId/:groupId')
+  async getUserInfoByGroupId(
+    @Param('groupId', new ParseIntPipe()) groupId: number,
+  ) {
+    return await this.userService.getUserListByGroupId(groupId);
   }
 }

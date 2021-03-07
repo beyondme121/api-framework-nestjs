@@ -1,5 +1,5 @@
 export type GroupUserIdsList = {
-  userGroupId: number;
+  groupId: number;
   userIdsList: string;
 };
 
